@@ -22,4 +22,7 @@ for pins in motor_pins:
     all_motor_pins.extend(pins)
 all_motor_pins = tuple(all_motor_pins)
 
+#This is the only data volitile between threads. It's just ints in a list, it
+#should be threadsafe.
+
 motor_state=[0,0,0,0]

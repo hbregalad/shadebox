@@ -1,14 +1,29 @@
 mkdir shadebox
 cd shadebox
-#sudo -H pip install --upgrade pip
-#sudo apt-get install python3-venv
+
+venv.sh
+#if if ./venv doesn't exist
+
+#mk venv
+
+sudo -H pip install --upgrade pip
+sudo apt-get install python3-venv
+
 python3 -m venv venv
 . venv/bin/activate
 pip install --upgrade pip
-pip install Flask
+pip install -U Flask
 pip install -U python-dotenv
-pip install watchdog
-pip install RPi.GPIO
+pip install -U watchdog
+pip install -U RPi.GPIO
+
+sudo apt install dnsmasq
+sudo apt install hostapd
+
+sudo echo network={               > /etc/wpa_supplicant/wpa_supplicant.conf
+sudo echo     ssid="shadebox"     >> /etc/wpa_supplicant/wpa_supplicant.conf
+sudo echo     psk="shadebox_auth" >> /etc/wpa_supplicant/wpa_supplicant.conf
+sudo echo }                       >> /etc/wpa_supplicant/wpa_supplicant.conf
 
 
 git init
