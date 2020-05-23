@@ -8,5 +8,19 @@ pip install --upgrade pip
 pip install Flask
 pip install -U python-dotenv
 pip install watchdog
+pip install RPi.GPIO
+
 
 git init
+git config --global user.email "hbregalad@gmail.com"
+git config --global user.email "H. Bregalad"
+git config credential.helper 'cache --timeout=11197440'
+
+
+
+echo "# shadebox" >> README.md
+git add README.md
+
+git commit -m "first commit"
+git remote add origin https://github.com/hbregalad/shadebox.git
+git push -u origin master
