@@ -1,0 +1,12 @@
+mkdir shadebox
+cd shadebox
+#sudo -H pip install --upgrade pip
+#sudo apt-get install python3-venv
+python3 -m venv venv
+. venv/bin/activate
+pip install --upgrade pip
+pip install Flask
+pip install -U python-dotenv
+pip install watchdog
+
+git init
