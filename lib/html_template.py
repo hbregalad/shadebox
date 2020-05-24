@@ -1,16 +1,20 @@
-MINIFY = False #set this to true to control how .html_template formats whitespace.
+
+#set this to True to minimize whitespace and enable other bandwidth control techniques.
+MINIFY = True
 
 if MINIFY:
-    #saves about 50% data.
+    #saves about 40% data.
     HTML_START_INDENT=''
     HTML_INDENT=''
     MOTOR_START_PATH='m'
 else:
+    #serves beautified html.
     HTML_START_INDENT = '\n'
     HTML_INDENT='  '
     MOTOR_START_PATH='start'
 
 class html:
+    """Simple class for building html templates from code with minimal boilerplating."""
     def __init__(self, identity='html', indent=HTML_START_INDENT):
         self.identity = identity
         self.args = {}
@@ -85,13 +89,14 @@ CSS= """
     th {
         background-color: #334;
         height: 20%;
-
     }"""
 ROBOT = "User-agent: *\nAllow: /\nDisallow: /{}/".format(MOTOR_START_PATH)
 
 #prerender these static header tags...
-if MINIFY: #When the time comes to leave debug mode remove extrainious whitespace.
-    CSS=' '.join(CSS.split())
+if MINIFY:
+    #When the time comes to leave debug mode remove extrainious whitespace.
+    CSS=' '.join(CSS.split())#shrink data
+    #serve as seperate .css file so that the browser can cache it.
     STYLE = str(html('link')(rel='stylesheet', type='text/css', href='/shadebox.css'))
 else:
     STYLE = str(html('style', HTML_START_INDENT+HTML_INDENT+HTML_INDENT).append(CSS))+str()

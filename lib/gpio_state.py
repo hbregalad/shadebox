@@ -11,7 +11,7 @@ except ImportError:
         #def __init__(self):
         #    print(self.__dict__.items())
         def __getattr__(self,name):
-            print("GPIO attribute %s" % name)
+            print("GPIO attribute creation: %s" % name)
             class logger:
                 def __call__(self, *args, **kargs):
                     print("GPIO.%s(%s, %s)" % (name, str(args)[1:-1], str(kargs)[1:-1]))

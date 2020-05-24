@@ -13,9 +13,9 @@ python3 -m venv venv
 . venv/bin/activate
 pip install --upgrade pip
 pip install -U Flask
-pip install -U python-dotenv
-pip install -U watchdog
-pip install -U RPi.GPIO
+#pip install -U python-dotenv
+#pip install -U watchdog
+#pip install -U RPi.GPIO
 
 sudo apt install dnsmasq
 sudo apt install hostapd
