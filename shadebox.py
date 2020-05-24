@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from flask import Flask, Response, url_for
 from threading import Timer
 from lib import *
