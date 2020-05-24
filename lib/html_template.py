@@ -1,6 +1,6 @@
 
 #set this to True to minimize whitespace and enable other bandwidth control techniques.
-MINIFY = True
+MINIFY = False
 
 if MINIFY:
     #saves about 40% data.
@@ -76,6 +76,7 @@ CSS= """
     tr {
         height: 20%;
     }
+
     tr:nth-child(odd) {
         background-color: #030;
     }

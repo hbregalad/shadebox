@@ -20,11 +20,37 @@ pip install -U Flask
 sudo apt install dnsmasq
 sudo apt install hostapd
 
-sudo echo network={               > /etc/wpa_supplicant/wpa_supplicant.conf
-sudo echo     ssid="shadebox"     >> /etc/wpa_supplicant/wpa_supplicant.conf
-sudo echo     psk="shadebox_auth" >> /etc/wpa_supplicant/wpa_supplicant.conf
-sudo echo }                       >> /etc/wpa_supplicant/wpa_supplicant.conf
+######## this is to log into internet probably already set up...
+#sudo echo network={               > /etc/wpa_supplicant/wpa_supplicant.conf
+#sudo echo     ssid="wanlan_ssid"     >> /etc/wpa_supplicant/wpa_supplicant.conf
+#sudo echo     psk="wanlan_psk" >> /etc/wpa_supplicant/wpa_supplicant.conf
+#sudo echo }                       >> /etc/wpa_supplicant/wpa_supplicant.conf
 
+#this is to set up self on a network where we are dhcp server
+sudo echo interface wlan1                       > /etc/dhcpcd.conf
+sudo echo static ip_address=192.168.220.1/24    >> /etc/dhcpcd.conf
+sudo echo static routers=192.168.220.0          >> /etc/dhcpcd.conf
+
+sudo service dhcpcd restart
+
+sudo echo interface=wlan1                       > /etc/hostapcd/hostapd.conf
+sudo echo driver=nl80211                        >> /etc/hostapd/hostapd.conf
+sudo echo                                       >> /etc/hostapd/hostapd.conf
+sudo echo hw_mode=g                             >> /etc/hostapd/hostapd.conf
+sudo echo channel=6                             >> /etc/hostapd/hostapd.conf
+sudo echo ieee80211n=1                          >> /etc/hostapd/hostapd.conf
+sudo echo wmm_enabled=1                         >> /etc/hostapd/hostapd.conf
+sudo echo ht_capab=[HT40][SHORT-GI-20][DSSS_CCK-40] >> /etc/hostapd/hostapd.conf
+sudo echo macaddr_acl=0                         >> /etc/hostapd/hostapd.conf
+sudo echo ignore_broadcast_ssid=0               >> /etc/hostapd/hostapd.conf
+sudo echo                                       >> /etc/hostapd/hostapd.conf
+sudo echo auth_algs=1                           >> /etc/hostapd/hostapd.conf
+sudo echo wpa=2                                 >> /etc/hostapd/hostapd.conf
+sudo echo wpa_key_mgmt=WPA-PSK                  >> /etc/hostapd/hostapd.conf
+sudo echo rsn_pairwise=CCMP                     >> /etc/hostapd/hostapd.conf
+sudo echo                                       >> /etc/hostapd/hostapd.conf
+sudo echo ssid=shadebox1                        >> /etc/hostapd/hostapd.conf
+sudo echo wpa_passphrase=shadebox_auth          >> /etc/hostapd/hostapd.conf
 
 git init
 git config --global user.email "hbregalad@gmail.com"
