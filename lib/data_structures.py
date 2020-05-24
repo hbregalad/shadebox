@@ -32,10 +32,8 @@ all_motor_pins = tuple(all_motor_pins)
 
 
 
-DEFAULT_REFRESH = 300 #seconds
+DEFAULT_REFRESH = 300 #in seconds
 DEFAULT_PORT = 5000
-
-
 
 
 #This is the only data volitile between threads. It's just ints in a list, it

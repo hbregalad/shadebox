@@ -141,5 +141,19 @@ build_error_pages()
 ###############################################################################
 
 if __name__ == '__main__':
+    def finish_test():
+        """Call everything once, before we enter wait state, to fail early."""
+        for f in (index, css, oh_no_robot, favicon):
+            f()
+            
+        if GPIO_DEBUG:
+            #only test this if we're NOT talking to real hardware,
+            #only spaming the debug handler...
+            for motor,pins in enumerate(MOTOR_PINS):
+                if not pins: continue
+                
+                motor_start(motor, motor)
+        
     with gpio_open([],all_motor_pins) as GPIO:
+        finish_test()
         app.run(host = '0.0.0.0', port=5000)

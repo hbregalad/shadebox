@@ -2,8 +2,12 @@
 from contextlib import contextmanager
 try:
     import RPi.GPIO as GPIO
+    GPIO_DEBUG=False
+
 except ImportError:
     print("RPi.GPIO missing, logging all GPIO calls to stdout.")
+    GPIO_DEBUG=True
+
     class _GPIO:
         """class provided for debug purposes."""
         #def __call__():
