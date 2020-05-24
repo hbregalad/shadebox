@@ -1,6 +1,6 @@
 #data.py
 
-directions=(
+DIRECTIONS=(
     (0, 1, 30,   'Up', '&lt;&lt;&lt;'), # up forever
     (0, 1,  5,   'Up',     '&lt;&lt;'), # up for 5 seconds
     (0, 1, .1,   'Up',        '|&lt;'), # up for .1 seconds
@@ -10,7 +10,7 @@ directions=(
     (1, 0, 30, 'Down', '&gt;&gt;&gt;'), # down for .1 seconds
 )
 STOP = 3
-motor_pins=(
+MOTOR_PINS=(
     (3,5),
     (7,8),
     (11,12),
@@ -19,18 +19,18 @@ motor_pins=(
 )
 def motor_name(index):
     try:
-        pins = motor_pins[index]
+        pins = MOTOR_PINS[index]
     except IndexError:
         return '[Invalid Motor Index]'
 
     return 'Motor{}'.format(index) if pins else 'All'
 all_motor_pins = []
 
-for pins in motor_pins:
+for pins in MOTOR_PINS:
     all_motor_pins.extend(pins)
 all_motor_pins = tuple(all_motor_pins)
 
-#motor_pins.append(all_motor_pins)
+
 
 DEFAULT_REFRESH = 300 #seconds
 DEFAULT_PORT = 5000

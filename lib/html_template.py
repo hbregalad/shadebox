@@ -7,11 +7,13 @@ if MINIFY:
     HTML_START_INDENT=''
     HTML_INDENT=''
     MOTOR_START_PATH='m'
+    OTHER_START_PATH='start'
 else:
     #serves beautified html.
     HTML_START_INDENT = '\n'
     HTML_INDENT='  '
     MOTOR_START_PATH='start'
+    OTHER_START_PATH='m'
 
 class html:
     """Simple class for building html templates from code with minimal boilerplating."""
@@ -105,7 +107,7 @@ else:
 KEYWORDS = str(html('meta')(name="Keywords", content='motorized,shade,control,automation,RPi.GPIO'))
 
 if __name__ == '__main__':
-    """Demo"""
+    """Demo/test"""
     doc = html()
     print (doc)
     doc.head.title.append('Hello World')
