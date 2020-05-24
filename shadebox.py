@@ -4,6 +4,9 @@ from threading import Timer
 from lib import *
 from math import ceil
 
+#move this to .data. later:
+DEFAULT_PORT = 5000
+
 app = Flask(__name__)
 
 
@@ -107,22 +110,26 @@ def favicon():
     return Response(open('static/favicon.png','rb').read() , mimetype = 'image/png')
 
 def build_errors():
-    address = 'http://%s/' % get_host_ip()
+    address = 'http://%s:%i/' % (get_host_ip(), DEFAULT_PORT)
     print ("build_errors() rendering with redirect location: %s" % address)
     error_page = {
         error: main("Error: %i Response: Redirect" % error,10,address)
         for error in (400,404,403,410,500)
     }
     for error_in, error_out in ((400,301),(404,301),(403,301),(410,301),(500,500)):
-        def _error():
-            return error_page[error_in], error_out, {'Location': address}
-        app.errorhandler(error_in)(_error)
+        #def _error(arg):
+        #    print('_error({})'.format(arg))
+        #    return error_page[error_in], error_out, {'Location': address}
+        #app.errorhandler(error_in)(_error)
+        app.errorhandler(error_in)(lambda err_msg:(
+            error_page[error_in+0]+'', error_out+0, {'Location': address}
+        ))
+
 
 build_errors()
 
-
 if __name__ == '__main__':
-    
+
 
     with gpio_open([],all_motor_pins) as GPIO:
         app.run(host = '0.0.0.0', port=5000)
