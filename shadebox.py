@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
 from flask import Flask, Response, url_for
 from threading import Timer
 from lib import *
 from math import ceil
-
-#move this to .data. later:
-DEFAULT_PORT = 5000
+from pprint import pprint
 
 app = Flask(__name__)
 
@@ -16,7 +13,7 @@ def index():
     return main('Welcome to shadebox.')
 
 
-def main(message='Ready.', refresh=default_refresh, reload='/'):
+def main(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     doc = html()
     head = doc.head
     head.title.append("Shadebox: %s" % message)
@@ -109,27 +106,31 @@ def favicon():
     """I chose a darkmode raspberrypi icon. There are others out there, suit yourself."""
     return Response(open('static/favicon.png','rb').read() , mimetype = 'image/png')
 
-def build_errors():
+def build_error_pages():
     address = 'http://%s:%i/' % (get_host_ip(), DEFAULT_PORT)
     print ("build_errors() rendering with redirect location: %s" % address)
+    error_redirect = {400: 301, 403: 301, 404: 301, 410: 301, 500: 500}
+    pprint(error_redirect)
     error_page = {
-        error: main("Error: %i Response: Redirect" % error,10,address)
-        for error in (400,404,403,410,500)
+        error: (
+            main("Error: %i Response: Redirect" % error,10,address),
+            error_redirect[error],
+            {'Location': address}
+            )
+        
+        for error in error_redirect.keys()
     }
-    for error_in, error_out in ((400,301),(404,301),(403,301),(410,301),(500,500)):
-        #def _error(arg):
-        #    print('_error({})'.format(arg))
-        #    return error_page[error_in], error_out, {'Location': address}
-        #app.errorhandler(error_in)(_error)
-        app.errorhandler(error_in)(lambda err_msg:(
-            error_page[error_in+0]+'', error_out+0, {'Location': address}
-        ))
+    def error(arg='400'):
+        err = int(str(arg)[:3])
+        return error_page[err]
+    for err in error_redirect.keys():
+        app.errorhandler(err)(error)
 
+build_error_pages()
 
-build_errors()
 
 if __name__ == '__main__':
-
+    
 
     with gpio_open([],all_motor_pins) as GPIO:
         app.run(host = '0.0.0.0', port=5000)

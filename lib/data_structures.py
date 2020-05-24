@@ -15,7 +15,7 @@ motor_pins=(
     (7,8),
     (11,12),
     (22,23),
-    tuple()
+    tuple() #Empty tuple is tests False.
 )
 def motor_name(index):
     try:
@@ -32,8 +32,8 @@ all_motor_pins = tuple(all_motor_pins)
 
 #motor_pins.append(all_motor_pins)
 
-default_refresh=300 #seconds
-
+DEFAULT_REFRESH = 300 #seconds
+DEFAULT_PORT = 5000
 
 
 

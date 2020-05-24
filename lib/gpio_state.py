@@ -40,3 +40,22 @@ def gpio_open(inpins=[], outpins=[]):
     yield GPIO
 
     GPIO.cleanup()
+
+def motor_set_state(motor, pins, direction, direction_data):
+    """ Outputs the new motor direction to GPIO,
+        Saves state to motor_state[],
+        starts a timer until reseting to STOP state."""
+    if pins:
+        GPIO.output(pins, direction_data[:2])
+        motor_state[motor] = direction
+    else:
+        for inner_motor, pins in enumerate(motor_pins):
+            if pins:
+                GPIO.output(pins, direction_data[:2])
+            motor_state[inner_motor] = direction
+
+    if direction_data[2]:
+        t = Timer(direction_data[2],
+            lambda: motor_set_state(motor, pins, STOP, directions[STOP])#after duration, set to stop
+            )
+        t.start()
