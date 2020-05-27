@@ -67,3 +67,23 @@ git add README.md
 git commit -m "first commit"
 git remote add origin https://github.com/hbregalad/shadebox.git
 git push -u origin master
+
+#the following can be found in the SequentMicrosystems.com 8RELAY Users Guide page 9
+#turn on the i2c communication kernel module (this doesn't require reboot.)
+sudo raspi-config
+> 5. Interface Options
+>> P5 I2C
+   Y  Yes
+<< Esc Esc
+
+#To install 8relay cli driver:
+git clone https://github.com/SequentMicrosystems/8relay-rpi.git
+cd 8relay-rpi
+sudo make install
+
+#to update 8relay driver
+cd /home/pi/8relay-rpi
+git pull
+sudo make install
+
+
