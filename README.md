@@ -16,18 +16,19 @@ shade 3:	Relay 7 and 8
 
 
 installation:
-
+```
 git clone https://github.com/hbregalad/shadebox.git
 cd shadebox
-. venv_rpi/bin/activate
 
+```
 
 to setup:
 Working on this.
+```
 sudo raspi-config 
 5
 p5
-
+```
 
 to run:
-./shadebox.sh
+`$./shadebox.sh`
