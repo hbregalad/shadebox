@@ -17,6 +17,8 @@ pip install -U Flask
 #pip install -U watchdog
 #pip install -U RPi.GPIO
 
+
+https://pimylifeup.com/raspberry-pi-wifi-extender/
 sudo apt install dnsmasq
 sudo apt install hostapd
 
