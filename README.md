@@ -18,9 +18,17 @@ shade 3:	Relay 7 and 8
 
 installation:
 ```
-git clone https://github.com/hbregalad/shadebox.git
-cd shadebox
+#if need be install git:
 
+sudo apt install git-all
+
+#clone this repository:
+
+git clone https://github.com/hbregalad/shadebox.git
+
+#enter the shadebox directory
+
+cd shadebox
 ```
 
 to setup:
@@ -32,4 +40,7 @@ p5
 ```
 
 to run:
+
+
+
 `$./shadebox.sh`
