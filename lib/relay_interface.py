@@ -115,11 +115,11 @@ class Driver:
         if isinstance(direction, int):
             try:
                 direction = DIRECTIONS[direction]
-            except (KeyError, IndexError):
+            except (KeyError, IndexError) as E:
                 raise ValueError(
                     "direction not recognised in dirver.set(motor:{},direction:{})".format(
                         motor, direction)
-                    )
+                    ) from E
         elif isinstance(direction, tuple):
             assert DIRECTIONS.index(direction) == direction[0], ValueError(
                 "direction not recognised in dirver.set(motor:{},direction:{})".format(
@@ -139,11 +139,11 @@ class Driver:
         if isinstance(motor, (int, str)):
             try:
                 motor_data = self.motors[int(motor)]
-            except (ValueError,IndexError):
+            except (ValueError,IndexError) as E:
                 raise ValueError(
                     "Motor not recognised in driver.set(motor:{}, direction:{})".format(
                         motor,direction)
-                    )
+                    ) from E
         elif isinstance(motor, tuple):
             motor_data, motor = motor, motor[0]
         else:
