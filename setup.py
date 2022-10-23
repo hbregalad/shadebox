@@ -58,7 +58,7 @@ def make_service(file):
         pass
     
     try:
-        os.symlink(service, destination)
+        os.link(service, destination)
         subprocess.check_output([chmod, '664', destination])
         subprocess.check_output([systemctl, 'enable', destination]) #, '--now'])
         #subprocess.Popen(
