@@ -48,8 +48,8 @@ def make_service(file):
     except:
         pass
     os.symlink(service, destination)
-    subprocess.check_output('systemctl','enable','shadebox', bufsize=9000)
-    subprocess.check_output('sudo', 'chmod', '664', destination, bufsize=9000)
+    subprocess.check_output(['systemctl','enable','shadebox'])
+    subprocess.check_output(['sudo', 'chmod', '664', destination])
 
 
 make_service(os.path.abspath(__file__))
