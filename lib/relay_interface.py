@@ -34,6 +34,7 @@ def _retry_check_output(*args, **kargs):
             time.sleep(.01)
             continue
 
+
 #this doesn't really belong here, but it's the only other thing that uses _retry_check_output() and i didn't feel like putting that in a seperate library file.
 def get_host_ip():
     """Retrives and returns host ip address."""
@@ -54,43 +55,54 @@ class driver:
     def __init__(self):
         """Initialise driver"""
         #This retrives & parses a list of boards.
-        boards = _retry_check_output(['8relay','-list']).splitlines()[1:]
-        self.boards = tuple( map( lambda a: a.split()[-1], boards) ) #I don't trust this to work on multiple boards, fix this if multiple boards needed or driver's -list format changes.
-        log("8relay boards found: {}".format(self.boards) )
 
-        if not self.boards:
-            self.motors = ((0, ((0, 0), (0, 8)), "FakeMotor0:0"), 
+        try:
+            boards = _retry_check_output(['8relay','-list']).splitlines()[1:]
+        except FileNotFoundError:
+            #self.boards = tuple()
+            self.motors = ((0, ((0, 0), (0, 8)), "FakeMotor0:0"),
                            (1, ((1, 0), (1, 8)), "FakeMotor1:0"),
                            )
-        else:
-            #This builds the list of boards we'll be using.
-            #The data structure is just a tuple of ( index,
-            #                                        ((board_id,pin_down), (board_id,pin_up)),
-            #                                        'motor{board}:{shade_number}',
-            #                                        state,
-            #                                    )
-            index = count()
-            self.motors = tuple( (
-                (next(index),
-                ((board, channel[0]), (board, channel[1])), 
-                'motor%s:%s' % (board, shade_no)
-                )
-                for board in self.boards
-                    for shade_no, channel in enumerate( (('1','2'),('3','4'),('5','6'),('7','8')) )
-            ) ) + ( (next(index), tuple(), "All"), )
+            self.state = [STOP] * (len(self.motors)+1)
+            #self.set()#sets all to 0
+            return
+
+        self.boards = tuple( map( lambda a: a.split()[-1], boards) ) #I don't trust this to work on multiple boards, fix this if multiple boards needed or driver's -list format changes.
+        log("8relay boards found: {}".format(self.boards) )
+        index = count()
+        #This builds the list of boards we'll be using.
+        #The data structure is just a tuple of ( index,
+        #                                        ((board_id,pin_down), (board_id,pin_up)),
+        #                                        'motor{board}:{shade_number}',
+        #                                        state,
+        #                                    )
+        self.motors = tuple( (
+            (next(index),
+            ((board, channel[0]), (board, channel[1])),
+            'motor%s:%s' % (board, shade_no)
+            )
+            for board in self.boards
+                for shade_no, channel in enumerate( (('1','2'),('3','4'),('5','6'),('7','8')) )
+        ) ) + ( (next(index), tuple(), "All"), )
+
+
         self.state = [STOP] * (len(self.motors)+1)
         self.set()#sets all to 0
     def _set_channels(self, motor, direction):
         for channel, bit in zip(motor[CHANNEL_DATA], direction[PIN_DATA]):
             board_id, channel_id = channel
-            out = _retry_check_output(['8relay', str(board_id), 'write', str(channel_id), str(bit)])
+            try:
+                out = _retry_check_output(['8relay', str(board_id), 'write', str(channel_id), str(bit)])
+            except FileNotFoundError:
+                pass
+
             #log(out)
-            
+
             #log("Channel {} set to {}".format(channel, bit))
         self.state[motor[INDEX]] = direction[INDEX]
         log("{} set to {}".format(motor[MOTOR_NAME],direction[DIRECTION_NAME]))
 
-    def set(self, motor=False,direction=STOP):
+    def set(self, motor=False, direction=STOP):
         """Sets the direction of a motor. Use False to send to all motors."""
         if isinstance(direction, int):
             try:
@@ -144,9 +156,9 @@ class driver:
         self.set()#sets all to stop
     def __getitem__(self, val):
         return self.motors[val]
-            
 
-                
+
+
 #try:
 #    import RPi.GPIO as GPIO
 #    GPIO_DEBUG=False
@@ -192,5 +204,4 @@ class driver:
 #    yield GPIO
 #
 #    GPIO.cleanup()
-
 

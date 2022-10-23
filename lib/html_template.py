@@ -93,7 +93,7 @@ CSS= """
         background-color: #334;
         height: 20%;
     }"""
-ROBOT = "User-agent: *\nAllow: /\nDisallow: /{}/".format(MOTOR_START_PATH)
+ROBOT = "User-agent: *\nAllow: /\nDisallow: /{}/\n/{}/\n".format(MOTOR_START_PATH, OTHER_START_PATH)
 
 #prerender these static header tags...
 if MINIFY:

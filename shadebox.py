@@ -12,7 +12,6 @@ app = Flask(__name__)
 #some constants we don't need anywhere else:
 
 DEFAULT_REFRESH = 300 #in seconds
-DEFAULT_PORT = 5000
 motors = driver()
 
 ###############################################################################
@@ -124,11 +123,11 @@ def oh_no_robot():
 @app.route('/favicon.ico')
 def favicon():
     """I chose a darkmode raspberrypi icon. There are others out there, suit yourself."""
-    return Response(open('static/favicon.png','rb').read() , mimetype = 'image/png')
+    return Response(open('static/favicon.png','rb').read(), mimetype = 'image/png')
 
-def build_error_pages():
+def build_error_pages(PORT):
     """Prerendered error pages, and save."""
-    address = 'http://%s:%i/' % (get_host_ip(), DEFAULT_PORT)
+    address = 'http://%s:%i/' % (get_host_ip(), PORT)
     print ("build_errors() rendering with redirect location: %s" % address)
     if DEBUG:
         error_redirect = {400: 400, 403: 403, 404: 404, 410: 410, 500: 500}
@@ -157,7 +156,7 @@ def build_error_pages():
         return ep, new_err_num, loc
     for err in error_redirect.keys():
         app.errorhandler(err)(error)
-build_error_pages()
+#build_error_pages()
 
 ###############################################################################
 
@@ -166,16 +165,29 @@ if __name__ == '__main__':
         """Call everything once, before we enter wait state, to fail early."""
         for f in (index, css, oh_no_robot, favicon):
             f()
-            
+
         if True:#GPIO_DEBUG:
             #only test this if we're NOT talking to real hardware,
             #only spaming the debug handler...
-            for motor,pins,name in motors:
+            for motor, pins, name in motors:
                 if not pins: continue
                 motors.set(motor, motor)
-        
+
         #for motor in motors:
-            
+
     with motors:
         finish_test()
-        app.run(host = '0.0.0.0', port=5000)
+        successes={}
+        failures={}
+        for port in (80,5000):#try each port in turn, but stop after one success
+            build_error_pages(port)
+            try:
+                successes[port]=True
+                app.run(host = '0.0.0.0', port=port)
+            except PermissionError:
+                log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
+                del successes[port]
+            #except OSError:
+            #    log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
+            if len(successes):
+                break
