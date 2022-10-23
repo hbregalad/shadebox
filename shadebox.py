@@ -113,7 +113,7 @@ def admin_command(command):
         return str(doc)
                         
     if command=='shutdown':
-        s, code = format_CompleteProcess('shutdown -p +1')
+        s, code = format_CompleteProcess('shutdown -P +1')
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
     if command=='update':
