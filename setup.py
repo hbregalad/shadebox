@@ -18,15 +18,17 @@ ConditionPathExists={0}
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/python3 {0} >> {1}
+ExecStart=/usr/bin/python3 {0} >> {1} 2>&1
 
 [Install]
-WantedBy=multi-user.target"""
+WantedBy=multi-user.target
+"""
 
 def make_service(file):
     main = file.replace('setup.py', 'main.py')
     log = file.replace('setup.py', 'shadebox.log')
     service = file.replace('setup.py', 'shadebox.service')
+    destination = '/etc/systemd/system/shadebox.service'
 
     with open(log, mode='w') as f:
         f.write('log created')
@@ -38,6 +40,10 @@ def make_service(file):
     with open(service, 'w') as f:
         f.write(data)
 
-    os.symlink(service, '/etc/systemd/system/shadebox.service')
+    try:
+        os.remove(destination)
+    except:
+        pass
+    os.symlink(service, destination)
 
 make_service(os.path.abspath(__file__))
