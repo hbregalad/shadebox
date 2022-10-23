@@ -20,11 +20,12 @@ class Event:
             return
 
         try:
-            ret = action(*args, **kwargs)
+            return action(*args, **kwargs)
         except:
             print(self)
-            print(f"{action}(*{args=}, **{kwargs=}")
+            print("%r(*%r, **%r)"%(action, args, kwargs))
             print_exc()
+            raise
 
     def __init__(self, interval, description, action, args=None, kwargs=None, exclusive_description=True):
         """Drop in replacement for threading.Timer, but queryable
@@ -58,7 +59,7 @@ class Event:
         try:
             self.EventList.pop(self.id)
         except KeyError:
-            WARN(f"Event({self.id}) Warning: cancel() after Event already run or canceled. ")
+            WARN(f"Event(%r) Warning: cancel() after Event already run or canceled. "%self.id)
             return
         self.timer.cancel()#not sure if we really want to do this.
 
@@ -69,7 +70,7 @@ class Event:
                    if k[0]<expire_time]
 
         if expired:
-            WARN(f"Warning: {expired=}")
+            WARN("Warning: expired events:%r" % expired)
             for k in expired:
                 try: self.EventList.pop(k)
                 except: pass
@@ -99,9 +100,9 @@ class Event:
         return self.id[1]
 
     def __repr__(self):
-        return f"Event({self.interval_remaining()}, {self.id[1]})"
+        return f"Event(%r, %s)" % (self.interval_remaining(), self.id[1])
     def __str__(self):
-        return f"in: {self.interval_remaining()} seconds do: {self.id[1]}"
+        return f"in: %r seconds do: %s" %(self.interval_remaining(),self.id[1])
 
     def next(self):
         "retrives the nearest remaining event."
@@ -143,7 +144,7 @@ def EventAt(hours=0, minutes=0, seconds=0, description="Alarm", action=lambda:No
 
 if __name__=='__main__':
     for interval in range(5):
-        e = Event(interval, f"say {interval}", (lambda i:lambda:print(i))(interval))
+        e = Event(interval, "say %s" % interval, (lambda i:lambda:print(i))(interval))
 
     while e:
         print(list(e))

@@ -58,7 +58,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
 
     p=body.p(align='center')
     lt = time.strftime(TIME_FORMAT_STRING, time.localtime()).replace(' 0',' ')
-    p.append(f"Server local time is:{lt}")
+    p.append("Server local time is:%s" % lt)
     time_table = body.table
     time_table.tr.th(colspan='2').append("Scheduled events:")
     time_table_header = time_table.tr
