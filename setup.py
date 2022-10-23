@@ -1,5 +1,5 @@
 "setup.py"
-import sys
+import os
 
 MAIN = __file__.replace('setup.py', 'main.py')
 LOG = __file__.replace('setup.py', 'shadebox.log')
