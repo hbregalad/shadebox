@@ -100,7 +100,11 @@ class Event:
                     WARN("Event(%r) Warning: cancel() after Event already run or canceled. "%self.id)
                     return
         if not DontCheck: self._check_keyboard()
-
+    def cancel_by_description(self_or_cls, description):
+        """Cancels all registered events matching [description]"""
+        for event in list(self_or_cls.EventList.values()):
+            if event.description() == description:
+                event.cancel()
     def _check_expired(self):
         "Find all expired events and drop them from the .EventList"
 

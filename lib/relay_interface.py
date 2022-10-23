@@ -162,6 +162,8 @@ class Driver:
                     "motor=%s stop" % motor_data[INDEX],
                     lambda: self.set(motor_data, DIRECTIONS[STOP])
                 )
+            else:
+                Event.cancel_by_description(Event, "motor=%s stop" % motor_data[INDEX])
         else:
             self._set_channels(motor_data, direction)
 
@@ -170,6 +172,8 @@ class Driver:
                     "motor=%s stop" % motor,
                     lambda: self._set_channels(motor_data, DIRECTIONS[STOP])
                 )
+            else:
+                Event.cancel_by_description(Event, "motor=%s stop" % motor)
     def __iter__(self):
         yield from iter(self.motors)
         #yield self.all
