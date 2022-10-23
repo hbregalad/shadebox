@@ -70,6 +70,7 @@ class Driver:
             #self.boards = tuple()
             self.motors = ((0, ((0, 0), (0, 8)), "FakeMotor0:0"),
                            (1, ((1, 0), (1, 8)), "FakeMotor1:0"),
+                           (2, ((True,True),(False,False)), "All"),
                            )
             self.state = [STOP] * (len(self.motors)+1)
             #self.set()#sets all to 0
