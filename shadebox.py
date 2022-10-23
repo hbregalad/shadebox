@@ -96,34 +96,43 @@ def admin_command(command):
     doc_results = doc.p
     doc.p(align='right').a(href='/').append('return to Home')
     
-    def format_CompleteProcess(f):
-        try:
-            s = "\n$ %s\nstdout:\n%s\nstderr:\n%s\nReturn code: %s\n\n" % (
-                ' '.join(f.args),
-                f.stdout.decode(),
-                f.stderr.decode(),
-                f.returncode
-                )
-        except:
-            s = "Unexpected result: %r" % f
+    def format_CompleteProcess(a):
+        code, out = getstatusoutput(a)
+        s = "\n$ %s\noutput:\n%s\nReturn code: %s\n\n" % (
+            a, out, code)
+##        try:
+##            s = "\n$ %s\nstdout:\n%s\nstderr:\n%s\nReturn code: %s\n\n" % (
+##                ' '.join(f.args),
+##                f.stdout.decode(),
+##                f.stderr.decode(),
+##                f.returncode
+##                )
+##        except:
+##            s = "Unexpected result: %r" % f
         log(s)
-        return s
+        return s, code
     if command=='restart':
-        s = format_CompleteProcess(subprocess.call(['shutdown', '-r', '+5']))
+        #s = format_CompleteProcess(subprocess.call(['shutdown', '-r', '+5'], capture_output=True))
+        s, code = format_CompleteProcess('shutdown -r +5')
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
                         
     if command=='shutdown':
-        s = format_CompleteProcess(subprocess.call(['shutdown', '-p', '+5']))
+        #s = format_CompleteProcess(subprocess.call(['shutdown', '-p', '+5'], capture_output=True))
+        s, code = format_CompleteProcess('shutdown -p +5')
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
         #raise RuntimeError('Server going down')
     if command=='update':
-        f = subprocess.run(['git', 'pull'], capture_output=True)
-        s = format_CompleteProcess(f)
-        if not f.returncode : 
-            f = subprocess.run([sys.executable, 'setup.py'], capture_output=True)
-            s += format_CompleteProcess(f)
+##        f = subprocess.run(['git', 'pull'], capture_output=True)
+        s, code = format_CompleteProcess('git pull')
+        
+        #if not f.returncode :
+        if not code:
+            #f = subprocess.run([sys.executable, 'setup.py'], capture_output=True)
+            #s += format_CompleteProcess(f)
+            s2, code = format_CompleteProcess('%s setup.py' % sys.executable)
+            s += s2
 ##            if not f.returncode:
 ##                pass
         #f = subprocess.run(['/bin/systemctl', 'restart', 'shadebox.service'], capture_output=True)
