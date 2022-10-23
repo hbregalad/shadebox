@@ -23,6 +23,8 @@ class html:
         self.children = []
         self.indent = indent
     def __call__(self, **kargs):
+        if 'indent' in kargs:
+            self.indent = kargs.pop('indent')
         #print('%s.call(%r)' % (self.identity, kargs))
         self.args.update(kargs)
         return self

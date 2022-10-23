@@ -75,7 +75,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
         ac = body.p(align='right')
         ac.append('admin commands:')
         for command in admin_commands:
-            ac.a(href='/admin_command/%s' % command).append(command)
+            ac.a(href='/admin_command/%s' % command, indent='').append(command)
             ac.append(' :: ')
         #row.td.append('All:')
 
