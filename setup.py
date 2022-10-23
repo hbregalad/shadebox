@@ -27,6 +27,15 @@ ExecStop=/bin/kill -INT $MAINPID
 WantedBy=multi-user.target
 """
 
+def which(command):
+    ret =  subprocess.check_output(['which', command]).decode().rstrip()
+    print (command,'=',repr(ret))
+    return ret
+
+systemctl = which('systemctl')
+chmod = which('chmod')
+#sudo = which('sudo')#not needed either we're running as root or there's no point?
+
 def make_service(file):
     main = file.replace('setup.py', 'main.py')
     log = file.replace('setup.py', 'shadebox.log')
@@ -47,10 +56,13 @@ def make_service(file):
         os.remove(destination)
     except:
         pass
+    
     try:
         os.symlink(service, destination)
-        subprocess.check_output(['/bin/systemctl','enable','shadebox.service'])
-        subprocess.check_output(['sudo', 'chmod', '664', destination])
+        subprocess.check_output([chmod, '664', destination])
+        subprocess.check_output([systemctl, 'enable', destination]) #, '--now'])
+        #subprocess.Popen(
+        
     except:
         print("try sudo env python3 setup.py")
         raise
