@@ -253,7 +253,7 @@ if __name__ == '__main__':
             for motor, pins, name in motors:
                 if not pins: continue
                 motors.set(motor, motor)
-            sleep(2)
+            time.sleep(2)
             for motor, pins, name in motors:
                 motors.set(motor, STOP)
                 
