@@ -1,0 +1,13 @@
+[Unit]
+Description=shadebox service
+After=multi-user.target
+Wants=systemd-timesyncd.service
+After=systemd-timesyncd.service
+ConditionPathExists=/home/pi/shadebox/main.py
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/pi/shadebox/main.py >> /home/pi/shadebox/shadebox.log
+
+[Install]
+WantedBy=multi-user.target
