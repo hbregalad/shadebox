@@ -37,7 +37,7 @@ chmod = which('chmod')
 #sudo = which('sudo')#not needed either we're running as root or there's no point?
 
 def make_service(file):
-    main = file.replace('setup.py', 'main.py')
+    main = file.replace('setup.py', 'shadebox.py')
     log = file.replace('setup.py', 'shadebox.log')
     service = file.replace('setup.py', 'shadebox.service')
     destination = '/etc/systemd/system/shadebox.service'
