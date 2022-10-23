@@ -6,12 +6,15 @@ from flask import Flask, Response
 from lib import *
 from math import ceil
 from pprint import pprint
+#import time
+
 
 app = Flask(__name__)
 ###############################################################################
 #some constants we don't need anywhere else:
 
 DEFAULT_REFRESH = 300 #in seconds
+events = Event(0, 'dummy event', lambda:print("Event list created"))
 motors = driver()
 
 ###############################################################################
@@ -24,6 +27,9 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     #head.meta(name="viewport", content="width=device-width, initial-scale=1")
 
     #print((reload, reload))
+    if len(events) :#if there are events other than the most recent one added, set refresh based on the soonest
+        refresh = min(refresh, events.next().interval_remaining())
+
     head.meta(**{'http-equiv': 'refresh',
                  'content':    '%i;url=%s' % (ceil(refresh + .1), reload)
             })
@@ -33,7 +39,8 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     #ead.meta(name="Keywords", content='shade,control,automation')
     head.append(STYLE)
     head.append(KEYWORDS)
-    body_table = doc.body.table
+    body = doc.body
+    body_table = body.table
     body_table.tr.th(colspan='8').append(message)
     #table = body.table()
     for motor in motors:
@@ -41,14 +48,26 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
         #row.td(**{'class':'odd' if motor % 2 else 'even'}).append('Motor{}: '.format(motor))
 
         row.td.append(motor[MOTOR_NAME]+':')
-        for direction in DIRECTIONS:
+        for direction in DIRECTIONS[UP:DOWN+1]:
             #a= row.td(**{'class':'odd' if motor % 2 else 'even'}).a(href='/start/{}/{}'.format(motor, direction) )
             a = row.td.a(href='/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX], direction[INDEX]) )
             a.append('%s' % direction[DIRECTION_CAPTION])
-            if direction[INDEX]==motors.state[motor[INDEX]]:
+            if direction[INDEX] == motors.state[motor[INDEX]]:
                 a.args['class']='mode'
             #row.append()
 
+    p=body.p(align='center')
+    lt = time.strftime(TIME_FORMAT_STRING, time.localtime()).replace(' 0',' ')
+    p.append(f"Server local time is:{lt}")
+    time_table = body.table
+    time_table.tr.th(colspan='2').append("Scheduled events:")
+    time_table_header = time_table.tr
+    time_table_header.th.append("when")
+    time_table_header.th.append("what")
+    for event in events:
+        row = time_table.tr
+        row.td.append(event.format_interval())
+        row.td.append(event.description())
     #row.td.append('All:')
 
     #a=row.td.a(href='/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX]+1, direction) )
@@ -172,8 +191,24 @@ if __name__ == '__main__':
             for motor, pins, name in motors:
                 if not pins: continue
                 motors.set(motor, motor)
+        morning(True)
+        evening(True)
 
-        #for motor in motors:
+    #TODO make these into json and editable
+    def morning(startup=False):
+        #re/schedule self
+        EventAt(6,0,0, "morning routine", morning)
+        if not startup:#if alarm is really going off, do:
+            motor_start(0, UP)
+            motors.set(1, EXTENDED_TEST)
+            #EventAt(7,0,0, "light off", lambda:motors.set(1, STOP))
+
+    def evening(startup=False):
+        #re/schedule self
+        EventAt(17,0,0, "evening routine", evening)
+        if not startup:#if alarm is really going off, do:
+            motor_start(0, DOWN)
+
 
     with motors:
         finish_test()

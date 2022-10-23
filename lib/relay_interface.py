@@ -2,7 +2,11 @@
 import subprocess
 from contextlib import contextmanager	#to automate some cleanup.
 from itertools import count		#to help index some things
-from threading import Timer		#used for time outs
+#from threading import Timer		#used for time outs
+try:
+    from event_list import Event
+except ImportError:
+    from .event_list import Event
 
 DIRECTIONS=(
     #index, pin data, timeout, direction_name, link_caption
@@ -13,8 +17,12 @@ DIRECTIONS=(
     (4, (1, 0), .1, 'Down',        '&gt;|'), # down for .1 seconds
     (5, (1, 0),  5, 'Down',     '&gt;&gt;'), # down for 5 seconds
     (6, (1, 0), 30, 'Down', '&gt;&gt;&gt;'), # down 'forever' = 30 seconds
+    (7, (1, 0), 60*60, 'Extended Test', '!!!'), # down 'forever' = 1 hour
 )
+UP = 0
 STOP = 3
+DOWN = 6
+EXTENDED_TEST = 7
 
 INDEX=0
 PIN_DATA=1
@@ -134,18 +142,20 @@ class driver:
             for motor in self.motors[:-1]:
                 self._set_channels(motor, direction)
             if direction[TIMEOUT]:#set timeout as apropriate
-                t = Timer(direction[TIMEOUT],
-                    lambda: self.set(motor_data, DIRECTIONS[STOP])
+                t = Event(direction[TIMEOUT],
+                          f"motor={motor_data[INDEX]} stop",
+                          lambda: self.set(motor_data, DIRECTIONS[STOP])
                     )
-                t.start()
+##                t.start()
         else:
             self._set_channels(motor_data, direction)
 
             if direction[TIMEOUT]:#set timeout as apropriate
-                t = Timer(direction[TIMEOUT],
-                    lambda: self._set_channels(motor_data, DIRECTIONS[STOP])
+                t = Event(direction[TIMEOUT],
+                          f"{motor=} stop",
+                          lambda: self._set_channels(motor_data, DIRECTIONS[STOP])
                     )
-                t.start()
+##                t.start()
     def __iter__(self):
         yield from iter(self.motors)
         #yield self.all
@@ -204,4 +214,3 @@ class driver:
 #    yield GPIO
 #
 #    GPIO.cleanup()
-
