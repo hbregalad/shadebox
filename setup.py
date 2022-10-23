@@ -49,7 +49,7 @@ def make_service(file):
         pass
     try:
         os.symlink(service, destination)
-        subprocess.check_output(['systemctl','enable','shadebox'])
+        subprocess.check_output(['/bin/systemctl','enable','shadebox.service'])
         subprocess.check_output(['sudo', 'chmod', '664', destination])
     except:
         print("try sudo env python3 setup.py")
