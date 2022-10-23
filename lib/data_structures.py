@@ -30,12 +30,11 @@ if False:
     all_motor_pins.extend(pins)
  all_motor_pins = tuple(all_motor_pins)
  #This is the only data volitile between threads. It's just ints in a list, it
- #should be threadsafe. 
+ #should be threadsafe.
  motor_state=[STOP,STOP,STOP,STOP,STOP]
 
 
 
 DEFAULT_REFRESH = 300 #in seconds
 DEFAULT_PORT = 5000
-
 
