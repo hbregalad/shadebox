@@ -1,4 +1,5 @@
-#event_list.py
+"event_list.py"
+
 from threading import Timer 		#the behavior we are wrapping
 from math import ceil
 from sys import stderr
@@ -9,18 +10,20 @@ import time
 WARN = lambda *a,**k: print(*a, file=stderr, **k)
 
 TIME_FORMAT_STRING = ' %H:%M '#' %H:%M:%S '
+MINUTES_FORMAT_STRING = ' %H:%M:%S '
 class Event:
+    """Replacement for threading.Timer, but queryable."""
     EventList = {}#intentionally shared by all instances
     def wrap_action(self, action, args, kwargs):
         "take care of some house keeping before running user event code"
         try:
-            timer = self.EventList.pop(self.id)
+            self.EventList.pop(self.id)
         except KeyError:
             WARN(self.id, "canceled, skipping")
             return
 
         try:
-            return action(*args, **kwargs)
+            action(*args, **kwargs)
         except:
             print(self)
             print("%r(*%r, **%r)"%(action, args, kwargs))
@@ -43,13 +46,12 @@ class Event:
                     event.cancel()
         else:
             for event in self:
-                if event.id==self.id:
+                if event.id == self.id:
                     event.cancel()
 
         self.EventList[self.id] = self
         if interval<=0:
             self.wrap_action(action, args, kwargs)
-            return
         else:
             self.timer = Timer(interval, lambda:self.wrap_action(action, args, kwargs))
             self.timer.start()
@@ -59,21 +61,23 @@ class Event:
         try:
             self.EventList.pop(self.id)
         except KeyError:
-            WARN(f"Event(%r) Warning: cancel() after Event already run or canceled. "%self.id)
+            WARN("Event(%r) Warning: cancel() after Event already run or canceled. "%self.id)
             return
         self.timer.cancel()#not sure if we really want to do this.
 
     def _check_expired(self):
         "Find all expired events and drop them from the .EventList"
         expire_time = time.time()-1#allow one second of scheduling flexibility before complaining.
-        expired = [k for k in self.EventList.keys()
+        expired = [k for k in self.EventList
                    if k[0]<expire_time]
 
         if expired:
             WARN("Warning: expired events:%r" % expired)
             for k in expired:
-                try: self.EventList.pop(k)
-                except: pass
+                try:
+                    self.EventList.pop(k)
+                except KeyError:
+                    pass
 
     def __iter__(self):
         self._check_expired()
@@ -84,33 +88,40 @@ class Event:
         return len(self.EventList)
 
     def when(self):
+        "return the expire time for event"
         return self.id[0]
     def interval_remaining(self):
+        "return seconds remaining before event"
         return max(0, self.id[0] - time.time())
     def format_interval(self):
-
+        """formats the event time either as seconds remaining (if < 1 minute),
+        or minutes & seconds remaining (if < 1 hour),
+        or as the hours & minutes for the time of day it should go off (if > 1 hour)"""
         ir = self.interval_remaining()
         if ir > 60*60:
-            return time.strftime(TIME_FORMAT_STRING, time.localtime(self.when())).replace(' 00:',' ').replace(' 0',' ')
+            return time.strftime(TIME_FORMAT_STRING,
+                time.localtime(self.when())).replace(' 00:',' ').replace(' 0',' ')
         elif ir > 60:
-            return time.strftime(TIME_FORMAT_STRING, time.gmtime(ir)).replace(' 00:',' ').replace(' 0',' ')
+            return time.strftime(MINUTES_FORMAT_STRING,
+                time.gmtime(ir)).replace(' 00:',' ').replace(' 0',' ')
         else:
             return str(ceil(ir))
     def description(self):
+        "retrives the description field"
         return self.id[1]
 
     def __repr__(self):
-        return f"Event(%r, %s)" % (self.interval_remaining(), self.id[1])
+        return "Event(%r, %s)" % (self.interval_remaining(), self.id[1])
     def __str__(self):
-        return f"in: %r seconds do: %s" %(self.interval_remaining(),self.id[1])
+        return "in: %r seconds do: %s" %(self.interval_remaining(),self.id[1])
 
     def next(self):
         "retrives the nearest remaining event."
         self._check_expired()
         if self.EventList:
             return self.EventList[min(self.EventList.keys())]
-        else:
-            return self
+        #else:
+        return self
     def last(self):
         "retrives the farthest remaining event."
         self._check_expired()
@@ -120,44 +131,47 @@ class Event:
         """sleep()s until this event is scheduled to have run.
         if Any is set, instead executes self.next().join()
         if All is set, instead executes self.last().join()"""
-        if All: return self.last().join()
-        elif Any: return self.next().join()
+        if All:
+            return self.last().join()
+        elif Any:
+            return self.next().join()
         else:
-            time.sleep(max(0, self.interval_remaining()+.02))
+            return time.sleep(max(0, self.interval_remaining()+.02))
 
 DAY = 24*60*60
-##def midnight():
-##    tl = list(time.localtime())
-##    tl[3:6]=0,0,0
-##    return time.mktime(tuple(tl))
 def mktime(hours=0, minutes=0, seconds=0):
+    "returns time in seconds for when the given local time happens"
     print(hours, minutes, seconds)
     tl = list(time.localtime())
     tl[3:6] = hours, minutes, seconds
     return time.mktime(tuple(tl))
-def midnight():return mktime()
+def midnight():
+    "returns time in seconds for when the previous midnight"
+    return mktime()
 
-def EventAt(hours=0, minutes=0, seconds=0, description="Alarm", action=lambda:None):
+def EventAt(hours=0, minutes=0, seconds=0, description="Alarm", action=lambda:None, args=None, kwargs=None):
+    """schedules an Event via hours, minutes, and seconds, instead of seconds into the future"""
     t = mktime(hours, minutes, seconds)
     if t<time.time(): t+=DAY
-    return Event(t - time.time(), description, action)
+    return Event(t - time.time(), description, action, args, kwargs)
 
 if __name__=='__main__':
-    for interval in range(5):
-        e = Event(interval, "say %s" % interval, (lambda i:lambda:print(i))(interval))
+    def main():
+        "test"
+        for interval in range(5):
+            event = Event(interval, "say %s" % interval, (lambda i:lambda:print(i))(interval))
 
-    while e:
-        print(list(e))
-        e.join(Any=True)
+        while event:
+            print(list(event))
+            event.join(Any=True)
 
-    tomorrow = Event(24*60*60, "This time Tomorrow", print)
-    sunrise = EventAt(6)
-    sunset = EventAt(5+12, description="down")
-    for event in tomorrow:#, sunrise, sunset]:
-        print(event)
-        print(event.format_interval())
-        event.cancel()
+        tomorrow = Event(24*60*60, "This time Tomorrow", print)
+        _sunrise = EventAt(6)
+        _sunset = EventAt(5+12, description="down")
+        for event in tomorrow:
+            print(event)
+            print(event.format_interval())
+            event.cancel()
 
 
-##        e = e.next()
-##        sleep(e.interval_remaining())
+    main()
