@@ -97,7 +97,7 @@ def admin_command(command):
     doc.p(align='right').a(href='/').append('return to Home')
     
     def format_CompleteProcess(a):
-        code, out = getstatusoutput(a)
+        code, out = subprocess.getstatusoutput(a)
         s = "\n$ %s\noutput:\n%s\nReturn code: %s\n\n" % (
             a, out, code)
 ##        try:
