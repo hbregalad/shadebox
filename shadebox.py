@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 DEFAULT_REFRESH = 300 #in seconds
 events = Event(0, 'dummy event', lambda:print("Event list created"))
-motors = driver()
+motors = Driver()
 
 ###############################################################################
 

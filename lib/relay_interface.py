@@ -1,6 +1,6 @@
-#hardware.py
+"relay_interface.py"
 import subprocess
-from contextlib import contextmanager	#to automate some cleanup.
+#from contextlib import contextmanager	#to automate some cleanup.
 from itertools import count		#to help index some things
 #from threading import Timer		#used for time outs
 try:
@@ -59,7 +59,7 @@ else:
 CHANNEL_DATA = 1
 MOTOR_NAME = 2
 ##########################################################################
-class driver:
+class Driver:
     def __init__(self):
         """Initialise driver"""
         #This retrives & parses a list of boards.
@@ -116,11 +116,20 @@ class driver:
             try:
                 direction = DIRECTIONS[direction]
             except (KeyError, IndexError):
-                raise ValueError("direction not recognised in dirver.set(motor:{},direction:{})".format(motor,direction))
+                raise ValueError(
+                    "direction not recognised in dirver.set(motor:{},direction:{})".format(
+                        motor, direction)
+                    )
         elif isinstance(direction, tuple):
-            assert DIRECTIONS.index(direction) == direction[0], ValueError("direction not recognised in dirver.set(motor:{},direction:{})".format(motor,direction))
+            assert DIRECTIONS.index(direction) == direction[0], ValueError(
+                "direction not recognised in dirver.set(motor:{},direction:{})".format(
+                    motor, direction)
+                )
         else:
-            raise ValueError("direction not recognised in dirver.set(motor:{},direction:{})".format(motor,direction))
+            raise ValueError(
+                "direction not recognised in dirver.set(motor:{},direction:{})".format(
+                    motor,direction)
+                )
 
         if motor is False:
             for motor in self.motors[:-1]:
@@ -131,31 +140,35 @@ class driver:
             try:
                 motor_data = self.motors[int(motor)]
             except (ValueError,IndexError):
-                raise ValueError("Motor not recognised in driver.set(motor:{}, direction:{})".format(motor,direction))
+                raise ValueError(
+                    "Motor not recognised in driver.set(motor:{}, direction:{})".format(
+                        motor,direction)
+                    )
         elif isinstance(motor, tuple):
             motor_data, motor = motor, motor[0]
         else:
-            raise ValueError("Motor not recognised in driver.set(motor:{}, direction:{})".format(motor,direction))
+            raise ValueError(
+                "Motor not recognised in driver.set(motor:{}, direction:{})".format(
+                    motor,direction)
+                )
 
         if motor_data[INDEX] == len(self.motors)-1:#all
             self.state[motor] = direction[INDEX]
             for motor in self.motors[:-1]:
                 self._set_channels(motor, direction)
             if direction[TIMEOUT]:#set timeout as apropriate
-                t = Event(direction[TIMEOUT],
-                          f"motor={motor_data[INDEX]} stop",
-                          lambda: self.set(motor_data, DIRECTIONS[STOP])
-                    )
-##                t.start()
+                Event(direction[TIMEOUT],
+                    "motor=%s stop" % motor_data[INDEX],
+                    lambda: self.set(motor_data, DIRECTIONS[STOP])
+                )
         else:
             self._set_channels(motor_data, direction)
 
             if direction[TIMEOUT]:#set timeout as apropriate
-                t = Event(direction[TIMEOUT],
-                          f"{motor=} stop",
-                          lambda: self._set_channels(motor_data, DIRECTIONS[STOP])
-                    )
-##                t.start()
+                Event(direction[TIMEOUT],
+                    "motor=%s stop" % motor,
+                    lambda: self._set_channels(motor_data, DIRECTIONS[STOP])
+                )
     def __iter__(self):
         yield from iter(self.motors)
         #yield self.all
