@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 ###############################################################################
 
+from math import ceil
 from flask import Flask, Response
 
 from lib import *
-from math import ceil
-from pprint import pprint
+#from pprint import pprint
 #import time
 
 
@@ -27,7 +27,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     #head.meta(name="viewport", content="width=device-width, initial-scale=1")
 
     #print((reload, reload))
-    if len(events) :#if there are events other than the most recent one added, set refresh based on the soonest
+    if events :#if there are events other than the most recent one added, set refresh based on the soonest
         refresh = min(refresh, events.next().interval_remaining())
 
     head.meta(**{'http-equiv': 'refresh',
@@ -50,15 +50,15 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
         row.td.append(motor[MOTOR_NAME]+':')
         for direction in DIRECTIONS[UP:DOWN+1]:
             #a= row.td(**{'class':'odd' if motor % 2 else 'even'}).a(href='/start/{}/{}'.format(motor, direction) )
-            a = row.td.a(href='/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX], direction[INDEX]) )
-            a.append('%s' % direction[DIRECTION_CAPTION])
+            anchor = row.td.a(href='/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX], direction[INDEX]) )
+            anchor.append('%s' % direction[DIRECTION_CAPTION])
             if direction[INDEX] == motors.state[motor[INDEX]]:
-                a.args['class']='mode'
+                anchor.args['class']='mode'
             #row.append()
 
-    p=body.p(align='center')
     lt = time.strftime(TIME_FORMAT_STRING, time.localtime()).replace(' 0',' ')
-    p.append("Server local time is:%s" % lt)
+    body.p(align='center').append("Server local time is:%s" % lt)
+
     time_table = body.table
     time_table.tr.th(colspan='2').append("Scheduled events:")
     time_table_header = time_table.tr
@@ -171,9 +171,9 @@ def build_error_pages(PORT):
             new_err_num = 500
             loc = {'Location': address}
         if DEBUG:
-            ep = ep+arg
+            ep = ep + arg
         return ep, new_err_num, loc
-    for err in error_redirect.keys():
+    for err in error_redirect:
         app.errorhandler(err)(error)
 #build_error_pages()
 
@@ -196,6 +196,7 @@ if __name__ == '__main__':
 
     #TODO make these into json and editable
     def morning(startup=False):
+        "What to do in the morning"
         #re/schedule self
         EventAt(6,0,0, "morning routine", morning)
         if not startup:#if alarm is really going off, do:
@@ -204,6 +205,7 @@ if __name__ == '__main__':
             #EventAt(7,0,0, "light off", lambda:motors.set(1, STOP))
 
     def evening(startup=False):
+        "What to do in the evening"
         #re/schedule self
         EventAt(17,0,0, "evening routine", evening)
         if not startup:#if alarm is really going off, do:
