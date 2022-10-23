@@ -21,12 +21,13 @@ ConditionPathExists={0}
 Type=idle
 ExecStart=/usr/bin/nohup {2} {0}
 ExecStop=/bin/kill -INT $MAINPID
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 """
 # > {1} 2>&1
-#Restart=on-failure
+
 
 
 def which(command):
