@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ###############################################################################
 
-import os, sys
+import os, sys, threading
 
 from math import ceil
 from flask import Flask, Response
@@ -86,7 +86,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     return d#str(doc)
 
 ###############################################################################
-admin_commands = 'update restart shutdown'.split()
+admin_commands = 'quit update restart shutdown'.split()
 
 @app.route('/admin_command/<command>')
 def admin_command(command):
@@ -133,12 +133,23 @@ def admin_command(command):
             #s += format_CompleteProcess(f)
             s2, code = format_CompleteProcess('%s setup.py' % sys.executable)
             s += s2
-##            if not f.returncode:
+            if not code:
+                s2, code = format_CompleteProcess('systemctl restart shadebox.service')
+                s += s2
 ##                pass
         #f = subprocess.run(['/bin/systemctl', 'restart', 'shadebox.service'], capture_output=True)
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
-
+    if command=='quit':
+        def die():
+            server_thread.clear()
+            #server_thread.cancel()
+            raise KeyboardInterrupt()
+            #Threading.
+        #server_thread[0].cancel()
+        Event(2, 'web user requested shutdown', die)
+        server_thread.clear()
+        return render_main_page("Quitting soon ...", 1)
 
 ###############################################################################
 # it's better to always an answer to both paths, even if we only build paths to
@@ -248,6 +259,7 @@ def build_error_pages(PORT):
 ###############################################################################
 
 if __name__ == '__main__':
+    
     def finish_test():
         """Call everything once, before we enter wait state, to fail early."""
         for f in (index, css, oh_no_robot, favicon):
@@ -266,8 +278,9 @@ if __name__ == '__main__':
     def morning(startup=False):
         "What to do in the morning"
         #re/schedule self
-        EventAt(6,0,0, "morning routine", morning)
+        EventAt(6,0,0, "morning routine", morning, daemon=True)
         if not startup:#if alarm is really going off, do:
+            print("morning alarm activated")
             motor_start(0, UP)
             motors.set(1, EXTENDED_TEST)
             #EventAt(7,0,0, "light off", lambda:motors.set(1, STOP))
@@ -275,8 +288,9 @@ if __name__ == '__main__':
     def evening(startup=False):
         "What to do in the evening"
         #re/schedule self
-        EventAt(17,0,0, "evening routine", evening)
+        EventAt(17,0,0, "evening routine", evening, daemon=True)
         if not startup:#if alarm is really going off, do:
+            print("starting evening routine")
             motor_start(0, DOWN)
 
 
@@ -292,7 +306,8 @@ if __name__ == '__main__':
         finish_test()
         successes={}
         failures={}
-        for port in (80,5000):#try each port in turn, but stop after one success
+        server_thread = []
+        def startup(port):
             build_error_pages(port)
             try:
                 successes[port]=True
@@ -302,5 +317,23 @@ if __name__ == '__main__':
                 del successes[port]
             #except OSError:
             #    log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
+
+        for port in (80, 5000):#try each port in turn, but stop after one success
+            thread = threading.Thread(target=startup, args=[port]
+                                      , daemon=True
+                                      )
+            thread.start()
+            #event = Event(.01, "start server", startup, [port])
+            #event.timer.setDaemon()
+            time.sleep(1)
             if len(successes):
+                server_thread.append(thread)
                 break
+        
+        try:
+            while server_thread:
+                time.sleep(1)
+        finally:
+            print('exiting something')
+            events.cancel(True)
+##            exit()
