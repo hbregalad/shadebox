@@ -1,5 +1,5 @@
 "setup.py"
-import os#, sys
+import os, sys
 import subprocess
 #if __file__:
 
@@ -19,9 +19,9 @@ ConditionPathExists={0}
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/env python3 {0} &>> {1}
-Restart=True
-ExecStop=/bin/kill -n 2 $MAINPID
+ExecStart=/usr/bin/nohup {2} {0} > {1} 2>&1
+Restart=on-failure
+ExecStop=/bin/kill -INT $MAINPID
 
 [Install]
 WantedBy=multi-user.target
@@ -38,7 +38,7 @@ def make_service(file):
     
     print(main, log, service, sep='\n')
     
-    data = SERVICE_DATA.format(main, log)
+    data = SERVICE_DATA.format(main, log, sys.executable)
 
     with open(service, 'w') as f:
         f.write(data)
@@ -47,9 +47,13 @@ def make_service(file):
         os.remove(destination)
     except:
         pass
-    os.symlink(service, destination)
-    subprocess.check_output(['systemctl','enable','shadebox'])
-    subprocess.check_output(['sudo', 'chmod', '664', destination])
+    try:
+        os.symlink(service, destination)
+        subprocess.check_output(['systemctl','enable','shadebox'])
+        subprocess.check_output(['sudo', 'chmod', '664', destination])
+    except:
+        print("try sudo env python3 setup.py")
+        raise
 
 
 make_service(os.path.abspath(__file__))

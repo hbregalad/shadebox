@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 ###############################################################################
 
+import os, sys
+
 from math import ceil
 from flask import Flask, Response
 
 from lib import *
 #from pprint import pprint
 #import time
-
+#TODO:does hup kill this? can we make it not kill it?
 
 app = Flask(__name__)
 ###############################################################################
@@ -216,6 +218,7 @@ if __name__ == '__main__':
         finish_test()
         successes={}
         failures={}
+        log("running with pid=%s" % os.getpid(), file=sys.stderr)
         for port in (80,5000):#try each port in turn, but stop after one success
             build_error_pages(port)
             try:
