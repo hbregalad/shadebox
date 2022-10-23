@@ -122,9 +122,9 @@ def admin_command(command):
             s2, code = format_CompleteProcess('%s setup.py' % sys.executable)
             s += s2
             if not code:
-                s2, code = format_CompleteProcess('systemctl restart shadebox.service')
-                s += s2
-                if not code:
+                #s2, code = format_CompleteProcess('systemctl restart shadebox.service')
+                #s += s2
+                #if not code:
                     s+='Restarting shadebox server...'
                     Event(1,'Restarting shadebox server...', die)
         doc_results.append(s.replace('\n','<br>'))
@@ -160,27 +160,6 @@ def motor_start(motor_index, direction_index):
         '{} set to {}'.format(motor[MOTOR_NAME], direction[DIRECTION_NAME]),
         direction[TIMEOUT])
 
-    
-
-#def motor_set_state(motor, pins, direction, direction_data):
-#    """ Outputs the new motor direction to GPIO,
-#        Saves state to motor_state[],
-#        starts a timer until reseting to STOP state."""
-#    if pins:
-#        GPIO.output(pins, direction_data[:2])
-#        motor_state[motor] = direction
-#    else:
-#        for inner_motor, pins in enumerate(MOTOR_PINS):
-#            if pins:
-#                GPIO.output(pins, direction_data[:2])
-#            motor_state[inner_motor] = direction
-#
-#    if direction_data[2]:
-#        t = Timer(direction_data[2],
-#           lambda: motor_set_state(motor, pins, STOP, DIRECTIONS[STOP])#after duration, set to stop
-#           )
-#       t.start()
-
 ###############################################################################
 
 @app.route('/')
@@ -197,8 +176,8 @@ def css():
 def oh_no_robot():
     """Tell them not to browse the motor control interface."""
     r = Response(ROBOT, mimetype  = 'text/plain')
-    Response.expires
-    return 
+    Response.expires = 24*60*60
+    return r
 
 @app.route('/favicon.ico')
 def favicon():
