@@ -9,8 +9,8 @@ import time
 
 WARN = lambda *a,**k: print(*a, file=stderr, **k)
 
-TIME_FORMAT_STRING = ' %H:%M '#' %H:%M:%S '
-MINUTES_FORMAT_STRING = ' %H:%M:%S '
+TIME_FORMAT_STRING = 'at %H:%M '#' %H:%M:%S '
+MINUTES_FORMAT_STRING = 'in %H:%M:%S '
 class Event:
     """Replacement for threading.Timer, but queryable."""
     EventList = {}#intentionally shared by all instances
@@ -100,12 +100,12 @@ class Event:
         ir = self.interval_remaining()
         if ir > 60*60:
             return time.strftime(TIME_FORMAT_STRING,
-                time.localtime(self.when())).replace(' 00:',' ').replace(' 0',' ')
+                time.localtime(self.when()))#.replace(' 00:',' ').replace(' 0',' ')
         elif ir > 60:
             return time.strftime(MINUTES_FORMAT_STRING,
                 time.gmtime(ir)).replace(' 00:',' ').replace(' 0',' ')
         else:
-            return str(ceil(ir))
+            return str(ceil(ir)) + " secs"
     def description(self):
         "retrives the description field"
         return self.id[1]
