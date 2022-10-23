@@ -249,7 +249,6 @@ if __name__ == '__main__':
             os.chdir(newcwd)
             
     with motors:
-        log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
         relocate()
         log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
         finish_test()

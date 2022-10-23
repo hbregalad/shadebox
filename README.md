@@ -41,6 +41,8 @@ p5
 
 to run:
 
+`$python3 ./shadebox.sh`
 
+to install as automatic service
 
-`$./shadebox.sh`
+`$python3 ./setup.py`

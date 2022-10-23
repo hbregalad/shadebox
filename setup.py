@@ -20,13 +20,14 @@ ConditionPathExists={0}
 [Service]
 Type=idle
 ExecStart=/usr/bin/nohup {2} {0}
+ExecStop=/bin/kill -INT $MAINPID
 
 [Install]
 WantedBy=multi-user.target
 """
 # > {1} 2>&1
 #Restart=on-failure
-#ExecStop=/bin/kill -INT $MAINPID
+
 
 def which(command):
     ret =  subprocess.check_output(['which', command]).decode().rstrip()
