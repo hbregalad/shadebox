@@ -70,13 +70,37 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
         row = time_table.tr
         row.td.append(event.format_interval())
         row.td.append(event.description())
-    #row.td.append('All:')
+    
+    if admin_commands:
+        ac = body.p(align='right')
+        ac.append('admin commands:')
+        for command in admin_commands:
+            ac.a(href='/admin_command/%s' % command).append('command')
+            ac.append(' :: ')
+        #row.td.append('All:')
 
     #a=row.td.a(href='/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX]+1, direction) )
 
     d=str(doc)
     print("    Bytes rendered:",len(d))
     return d#str(doc)
+
+###############################################################################
+admin_commands = 'update restart shutdown'.split()
+
+@app.route('/admin_command/%s')
+def shutdown(command):
+    if command=='restart':
+        return subprocess.call(['shutdown', '-r', '+1'])
+    if command=='shutdown':
+        return subprocess.call(['shutdown', '-p', '+1'])
+        #raise RuntimeError('Server going down')
+    if command=='update':
+        try:
+            return subprocess.call(['git', 'pull'])
+        except:
+            pass
+
 
 ###############################################################################
 # it's better to always an answer to both paths, even if we only build paths to
@@ -104,6 +128,8 @@ def motor_start(motor_index, direction_index):
     return render_main_page(
         '{} set to {}'.format(motor[MOTOR_NAME], direction[DIRECTION_NAME]),
         direction[TIMEOUT])
+
+    
 
 #def motor_set_state(motor, pins, direction, direction_data):
 #    """ Outputs the new motor direction to GPIO,
@@ -139,7 +165,9 @@ def css():
 @app.route('/robots.txt')
 def oh_no_robot():
     """Tell them not to browse the motor control interface."""
-    return Response(ROBOT, mimetype  = 'text/plain')
+    r = Response(ROBOT, mimetype  = 'text/plain')
+    Response.expires
+    return 
 
 @app.route('/favicon.ico')
 def favicon():
@@ -214,11 +242,19 @@ if __name__ == '__main__':
             motor_start(0, DOWN)
 
 
+    def relocate():
+        if os.getcwd() != os.path.abspath(__file__):
+            newcwd = os.path.sep.join(os.path.abspath(__file__).split(os.path.sep)[:-1])
+            log('cd %s => %s' % (os.getcwd(), newcwd))
+            os.chdir(newcwd)
+            
     with motors:
         finish_test()
         successes={}
         failures={}
-        log("running with pid=%s" % os.getpid(), file=sys.stderr)
+        log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
+        relocate()
+        log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
         for port in (80,5000):#try each port in turn, but stop after one success
             build_error_pages(port)
             try:
