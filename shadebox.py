@@ -172,7 +172,7 @@ def oh_no_robot():
 @app.route('/favicon.ico')
 def favicon():
     """I chose a darkmode raspberrypi icon. There are others out there, suit yourself."""
-    return Response(open('static/favicon.png','rb').read(), mimetype = 'image/png')
+    return Response(open('./static/favicon.png','rb').read(), mimetype = 'image/png')
 
 def build_error_pages(PORT):
     """Prerendered error pages, and save."""
@@ -249,12 +249,12 @@ if __name__ == '__main__':
             os.chdir(newcwd)
             
     with motors:
-        finish_test()
-        successes={}
-        failures={}
         log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
         relocate()
         log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
+        finish_test()
+        successes={}
+        failures={}
         for port in (80,5000):#try each port in turn, but stop after one success
             build_error_pages(port)
             try:
