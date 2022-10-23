@@ -20,6 +20,8 @@ ConditionPathExists={0}
 [Service]
 Type=idle
 ExecStart=/usr/bin/env python3 {0} &>> {1}
+Restart=True
+ExecStop=/bin/kill -n 2 $MAINPID
 
 [Install]
 WantedBy=multi-user.target
@@ -47,5 +49,7 @@ def make_service(file):
         pass
     os.symlink(service, destination)
     subprocess.check_output('systemctl','enable','shadebox')
+    subprocess.check_output('sudo', 'chmod', '664', destination)
+
 
 make_service(os.path.abspath(__file__))
