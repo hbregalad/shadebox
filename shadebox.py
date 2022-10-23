@@ -136,18 +136,21 @@ def admin_command(command):
             if not code:
                 s2, code = format_CompleteProcess('systemctl restart shadebox.service')
                 s += s2
+                if not code:
+                    s+='taking server going down ...'
+                    server_thread.clear()
 ##                pass
         #f = subprocess.run(['/bin/systemctl', 'restart', 'shadebox.service'], capture_output=True)
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
     if command=='quit':
-        def die():
-            server_thread.clear()
-            #server_thread.cancel()
-            raise KeyboardInterrupt()
-            #Threading.
-        #server_thread[0].cancel()
-        Event(2, 'web user requested shutdown', die)
+##        def die():
+##            server_thread.clear()
+##            #server_thread.cancel()
+####            raise KeyboardInterrupt()
+##            #Threading.
+##        #server_thread[0].cancel()
+##        Event(2, 'web user requested shutdown', die)
         server_thread.clear()
         return render_main_page("Quitting soon ...", 1)
 
@@ -299,14 +302,16 @@ if __name__ == '__main__':
             newcwd = os.path.sep.join(os.path.abspath(__file__).split(os.path.sep)[:-1])
             log('cd %s => %s' % (os.getcwd(), newcwd))
             os.chdir(newcwd)
+        log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
             
     with motors:
         relocate()
-        log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
         finish_test()
+        
         successes={}
         failures={}
         server_thread = []
+
         def startup(port):
             build_error_pages(port)
             try:
@@ -315,6 +320,8 @@ if __name__ == '__main__':
             except PermissionError:
                 log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
                 del successes[port]
+            finally:
+                server_thread.clear()
             #except OSError:
             #    log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
 
@@ -322,12 +329,13 @@ if __name__ == '__main__':
             thread = threading.Thread(target=startup, args=[port]
                                       , daemon=True
                                       )
+            server_thread.append(thread)
+            
             thread.start()
             #event = Event(.01, "start server", startup, [port])
             #event.timer.setDaemon()
             time.sleep(1)
             if len(successes):
-                server_thread.append(thread)
                 break
         
         try:
