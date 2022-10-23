@@ -108,12 +108,12 @@ def admin_command(command):
         return s, code
 
     if command=='restart':
-        s, code = format_CompleteProcess('shutdown -r +5')
+        s, code = format_CompleteProcess('shutdown -r +1')
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
                         
     if command=='shutdown':
-        s, code = format_CompleteProcess('shutdown -p +5')
+        s, code = format_CompleteProcess('shutdown -p +1')
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
     if command=='update':
