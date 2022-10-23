@@ -75,7 +75,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
         ac = body.p(align='right')
         ac.append('admin commands:')
         for command in admin_commands:
-            ac.a(href='/admin_command/%s' % command).append('command')
+            ac.a(href='/admin_command/%s' % command).append(command)
             ac.append(' :: ')
         #row.td.append('All:')
 
@@ -88,18 +88,47 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
 ###############################################################################
 admin_commands = 'update restart shutdown'.split()
 
-@app.route('/admin_command/%s')
-def shutdown(command):
+@app.route('/admin_command/<command>')
+def admin_command(command):
+    doc = html()
+    doc.title.append('result:')
+    docb = doc.body
+    doc_results = doc.p
+    doc.p(align='right').a(href='/').append('return to Home')
+    
+    def format_CompleteProcess(f):
+        try:
+            s = "\n$ %s\nstdout:\n%s\nstderr:\n%s\nReturn code: %s\n\n" % (
+                ' '.join(f.args),
+                f.stdout.decode(),
+                f.stderr.decode(),
+                f.returncode
+                )
+        except:
+            s = "Unexpected result: %r" % f
+        log(s)
+        return s
     if command=='restart':
-        return subprocess.call(['shutdown', '-r', '+1'])
+        s = format_CompleteProcess(subprocess.call(['shutdown', '-r', '+5']))
+        doc_results.append(s.replace('\n','<br>'))
+        return str(doc)
+                        
     if command=='shutdown':
-        return subprocess.call(['shutdown', '-p', '+1'])
+        s = format_CompleteProcess(subprocess.call(['shutdown', '-p', '+5']))
+        doc_results.append(s.replace('\n','<br>'))
+        return str(doc)
         #raise RuntimeError('Server going down')
     if command=='update':
-        try:
-            return subprocess.call(['git', 'pull'])
-        except:
-            pass
+        f = subprocess.run(['git', 'pull'], capture_output=True)
+        s = format_CompleteProcess(f)
+        if not f.returncode : 
+            f = subprocess.run([sys.executable, 'setup.py'], capture_output=True)
+            s += format_CompleteProcess(f)
+##            if not f.returncode:
+##                pass
+        #f = subprocess.run(['/bin/systemctl', 'restart', 'shadebox.service'], capture_output=True)
+        doc_results.append(s.replace('\n','<br>'))
+        return str(doc)
 
 
 ###############################################################################
@@ -201,7 +230,7 @@ def build_error_pages(PORT):
             new_err_num = 500
             loc = {'Location': address}
         if DEBUG:
-            ep = ep + arg
+            ep = ep + str(arg)
         return ep, new_err_num, loc
     for err in error_redirect:
         app.errorhandler(err)(error)
