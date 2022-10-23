@@ -95,64 +95,43 @@ def admin_command(command):
     docb = doc.body
     doc_results = doc.p
     doc.p(align='right').a(href='/').append('return to Home')
-    
+
+    def die():
+        log('trying to restart')
+        server_thread.clear()
+
     def format_CompleteProcess(a):
         code, out = subprocess.getstatusoutput(a)
         s = "\n$ %s\noutput:\n%s\nReturn code: %s\n\n" % (
             a, out, code)
-##        try:
-##            s = "\n$ %s\nstdout:\n%s\nstderr:\n%s\nReturn code: %s\n\n" % (
-##                ' '.join(f.args),
-##                f.stdout.decode(),
-##                f.stderr.decode(),
-##                f.returncode
-##                )
-##        except:
-##            s = "Unexpected result: %r" % f
         log(s)
         return s, code
+
     if command=='restart':
-        #s = format_CompleteProcess(subprocess.call(['shutdown', '-r', '+5'], capture_output=True))
         s, code = format_CompleteProcess('shutdown -r +5')
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
                         
     if command=='shutdown':
-        #s = format_CompleteProcess(subprocess.call(['shutdown', '-p', '+5'], capture_output=True))
         s, code = format_CompleteProcess('shutdown -p +5')
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
-        #raise RuntimeError('Server going down')
     if command=='update':
-##        f = subprocess.run(['git', 'pull'], capture_output=True)
         s, code = format_CompleteProcess('git pull')
-        
-        #if not f.returncode :
         if not code:
-            #f = subprocess.run([sys.executable, 'setup.py'], capture_output=True)
-            #s += format_CompleteProcess(f)
             s2, code = format_CompleteProcess('%s setup.py' % sys.executable)
             s += s2
             if not code:
                 s2, code = format_CompleteProcess('systemctl restart shadebox.service')
                 s += s2
                 if not code:
-                    s+='taking server going down ...'
-                    server_thread.clear()
-##                pass
-        #f = subprocess.run(['/bin/systemctl', 'restart', 'shadebox.service'], capture_output=True)
+                    s+='Restarting shadebox server...'
+                    Event(1,'Restarting shadebox server...', die)
         doc_results.append(s.replace('\n','<br>'))
         return str(doc)
     if command=='quit':
-##        def die():
-##            server_thread.clear()
-##            #server_thread.cancel()
-####            raise KeyboardInterrupt()
-##            #Threading.
-##        #server_thread[0].cancel()
-##        Event(2, 'web user requested shutdown', die)
-        server_thread.clear()
-        return render_main_page("Quitting soon ...", 1)
+        Event(1, 'Exiting shadebox server...', die)
+        return render_main_page("Quitting soon ...")
 
 ###############################################################################
 # it's better to always an answer to both paths, even if we only build paths to
