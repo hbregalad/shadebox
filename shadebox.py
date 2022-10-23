@@ -162,6 +162,15 @@ def motor_start(motor_index, direction_index):
 
 ###############################################################################
 
+def set_expiration(response, days=7):
+    response.expires = time.gmtime(time.time()+ days*DAY)
+    return response
+    
+##def in_one_week():
+##    t = time.time() + DAY * 7
+##    #return time.strftime(' %a, %d %b %Y %H:%M:%S GMT', time.gmtime(t))
+##    return time.gmtime(t)
+
 @app.route('/')
 def index():
     """Do you feel at home?"""
@@ -170,19 +179,22 @@ def index():
 @app.route('/shadebox.css')
 def css():
     """If we serve this seperately, a lot of browsers will cache it, saving bandwidth."""
-    return Response(CSS, mimetype = 'text/css')
+    return set_expiration(Response(CSS, mimetype = 'text/css'))
 
 @app.route('/robots.txt')
 def oh_no_robot():
     """Tell them not to browse the motor control interface."""
-    r = Response(ROBOT, mimetype  = 'text/plain')
-    Response.expires = 24*60*60
-    return r
-
+    return set_expiration(Response(ROBOT, mimetype  = 'text/plain'))
+    
 @app.route('/favicon.ico')
 def favicon():
     """I chose a darkmode raspberrypi icon. There are others out there, suit yourself."""
-    return Response(open('./static/favicon.png','rb').read(), mimetype = 'image/png')
+    return set_expiration(
+        Response(
+            open('./static/favicon.png','rb').read(),
+            mimetype = 'image/png'
+            )
+        )
 
 def build_error_pages(PORT):
     """Prerendered error pages, and save."""
