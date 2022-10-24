@@ -86,7 +86,14 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     return d#str(doc)
 
 ###############################################################################
-admin_commands = 'quit update restart shutdown'.split()
+admin_commands = 'status quit update restart shutdown'.split()
+
+def format_CompleteProcess(a, log_output=True):
+    code, out = subprocess.getstatusoutput(a)
+    s = "\n$ %s\noutput:\n%s\nReturn code: %s\n\n" % (
+        a, out, code)
+    log(s)
+    return s.replace('\n','<br>'), code
 
 @app.route('/admin_command/<command>')
 def admin_command(command):
@@ -100,21 +107,14 @@ def admin_command(command):
         log('trying to restart')
         server_thread.clear()
 
-    def format_CompleteProcess(a):
-        code, out = subprocess.getstatusoutput(a)
-        s = "\n$ %s\noutput:\n%s\nReturn code: %s\n\n" % (
-            a, out, code)
-        log(s)
-        return s, code
-
     if command=='restart':
         s, code = format_CompleteProcess('shutdown -r +1')
-        doc_results.append(s.replace('\n','<br>'))
+        doc_results.append(s)
         return str(doc)
                         
     if command=='shutdown':
         s, code = format_CompleteProcess('shutdown -P +1')
-        doc_results.append(s.replace('\n','<br>'))
+        doc_results.append(s)
         return str(doc)
     if command=='update':
         s, code = format_CompleteProcess('git pull')
@@ -127,11 +127,15 @@ def admin_command(command):
                 #if not code:
                     s+='Restarting shadebox server...'
                     Event(1,'Restarting shadebox server...', die)
-        doc_results.append(s.replace('\n','<br>'))
+        doc_results.append(s)
         return str(doc)
     if command=='quit':
         Event(1, 'Exiting shadebox server...', die)
         return render_main_page("Quitting soon ...")
+    if command=='status':
+        s, code = format_CompleteProgess('systemctl status shadebox.service', False)
+        doc_results.append(s)
+        return str(doc)
 
 ###############################################################################
 # it's better to always an answer to both paths, even if we only build paths to
