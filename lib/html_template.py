@@ -99,6 +99,7 @@ ROBOT = """User-agent: *
 Allow: /
 Disallow: /{}/
 Disallow: /{}/
+Disallow: /event/
 Disallow: /admin_command/""".format(MOTOR_START_PATH, OTHER_START_PATH)
 
 #prerender these static header tags...

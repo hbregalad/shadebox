@@ -62,14 +62,20 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     body.p(align='center').append("Server local time is:%s" % lt)
 
     time_table = body.table
-    time_table.tr.th(colspan='2').append("Scheduled events:")
+    time_table.tr.th(colspan='3').append("Scheduled events:")
     time_table_header = time_table.tr
     time_table_header.th.append("when")
-    time_table_header.th.append("what")
+    time_table_header.th(colspan='2').append("what")
     for event in events:
         row = time_table.tr
         row.td.append(event.format_interval())
         row.td.append(event.description())
+
+        row_td=row.td(align='right')
+        if not event.cancel_activates:
+            row_td.a(title='Cancel', href='/event/cancel/%s'%event.description().replace(' ','_')).append('X')
+            row_td.append(' : ')
+        row_td.a(title='Trigger!', href='/event/trigger/%s'%event.description().replace(' ','_')).append('!')
     
     if admin_commands:
         ac = body.p(align='right')
@@ -169,6 +175,21 @@ def motor_start(motor_index, direction_index):
         direction[TIMEOUT])
 
 ###############################################################################
+@app.route('/event/<command>/<description>/')
+def event_mod(command, description):
+    for event in events:
+        if event.description().replace(' ','_') == description:
+            if command == 'cancel':
+                event.cancel()
+            elif command == 'trigger':
+                event.trigger()
+            else:
+                return render_main_page('unknown command:' %  command)
+            return render_main_page('event %s %sed' % (description, command)
+                                    )
+    else:
+        return render_main_page('event not found: %s' % description)
+
 
 def set_expiration(response, days=7):
     response.expires = time.gmtime(time.time()+ days*DAY)

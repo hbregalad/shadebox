@@ -159,8 +159,9 @@ class Driver:
                 self._set_channels(motor, direction)
             if direction[TIMEOUT]:#set timeout as apropriate
                 Event(direction[TIMEOUT],
-                    "motor=%s stop" % motor_data[INDEX],
-                    lambda: self.set(motor_data, DIRECTIONS[STOP])
+                      "motor=%s stop" % motor_data[INDEX],
+                      lambda: self.set(motor_data, DIRECTIONS[STOP]),
+                      #cancel_activates=True
                 )
             else:
                 Event.cancel_by_description(Event, "motor=%s stop" % motor_data[INDEX])
@@ -169,8 +170,9 @@ class Driver:
 
             if direction[TIMEOUT]:#set timeout as apropriate
                 Event(direction[TIMEOUT],
-                    "motor=%s stop" % motor,
-                    lambda: self._set_channels(motor_data, DIRECTIONS[STOP])
+                      "motor=%s stop" % motor,
+                      lambda: self._set_channels(motor_data, DIRECTIONS[STOP]),
+                      #cancel_activates=True
                 )
             else:
                 Event.cancel_by_description(Event, "motor=%s stop" % motor)
