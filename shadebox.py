@@ -88,11 +88,15 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
 ###############################################################################
 admin_commands = 'status quit update restart shutdown'.split()
 
-def format_CompleteProcess(a, log_output=True):
-    code, out = subprocess.getstatusoutput(a)
+def format_CompleteProcess(shell_command, log_output=True):
+    """Runs shell_command in a new process, and formats the results.
+    set log_output to log to terminal also"""
+    code, out = subprocess.getstatusoutput(shell_command)
     s = "\n$ %s\noutput:\n%s\nReturn code: %s\n\n" % (
-        a, out, code)
-    log(s)
+        shell_command, out, code)
+
+    if log_output: log(s)
+    
     return s.replace('\n','<br>'), code
 
 @app.route('/admin_command/<command>')
