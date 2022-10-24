@@ -133,7 +133,7 @@ def admin_command(command):
         Event(1, 'Exiting shadebox server...', die)
         return render_main_page("Quitting soon ...")
     if command=='status':
-        s, code = format_CompleteProgess('systemctl status shadebox.service', False)
+        s, code = format_CompleteProcess('systemctl status shadebox.service', False)
         doc_results.append(s)
         return str(doc)
 
