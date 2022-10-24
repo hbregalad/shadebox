@@ -52,7 +52,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
         row.td.append(motor[MOTOR_NAME]+':')
         for direction in DIRECTIONS[UP:DOWN+1]:
             #a= row.td(**{'class':'odd' if motor % 2 else 'even'}).a(href='/start/{}/{}'.format(motor, direction) )
-            anchor = row.td.a(href='/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX], direction[INDEX]) )
+            anchor = row.td.a(href='/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX], direction[INDEX]))
             anchor.append('%s' % direction[DIRECTION_CAPTION])
             if direction[INDEX] == motors.state[motor[INDEX]]:
                 anchor.args['class']='mode'

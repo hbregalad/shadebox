@@ -161,6 +161,7 @@ class Driver:
                 Event(direction[TIMEOUT],
                       "motor=%s stop" % motor_data[INDEX],
                       lambda: self.set(motor_data, DIRECTIONS[STOP]),
+                      daemon=True
                       #cancel_activates=True
                 )
             else:
@@ -172,6 +173,7 @@ class Driver:
                 Event(direction[TIMEOUT],
                       "motor=%s stop" % motor,
                       lambda: self._set_channels(motor_data, DIRECTIONS[STOP]),
+                      daemon=True
                       #cancel_activates=True
                 )
             else:

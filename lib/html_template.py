@@ -23,14 +23,14 @@ class html:
         self.children = []
         self.indent = indent
     def __call__(self, **kargs):
-        if 'indent' in kargs:
-            self.indent = kargs.pop('indent')
+        if '_indent' in kargs:
+            self.indent = kargs.pop('_indent')
         #print('%s.call(%r)' % (self.identity, kargs))
         self.args.update(kargs)
         return self
     def __getattr__(self, name):
         #print('getattr(%r})'% name)
-        ret = html(name, indent=self.indent+HTML_INDENT)
+        ret = html(name, indent='' if name == 'a' else self.indent+HTML_INDENT)
         self.children.append(ret)
         return ret
     def __str__(self):
