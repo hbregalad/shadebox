@@ -73,10 +73,12 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
 
         row_td=row.td(align='right')
         if not event.cancel_activates:
-            row_td.a(title='Cancel', href='/event/cancel/%s'%event.description().replace(' ','_')).append('X')
+            row_td.a(title='Cancel', href='/event/cancel/%s'%event.description().replace(' ','_')
+                ).append('X')
             row_td.append(' : ')
-        row_td.a(title='Trigger!', href='/event/trigger/%s'%event.description().replace(' ','_')).append('!')
-    
+        row_td.a(title='Trigger!', href='/event/trigger/%s'%event.description().replace(' ','_')
+            ).append('!')
+
     if admin_commands:
         ac = body.p(align='right')
         ac.append('admin commands:')
@@ -102,7 +104,7 @@ def format_CompleteProcess(shell_command, log_output=True):
         shell_command, out, code)
 
     if log_output: log(s)
-    
+
     return s.replace('\n','<br>'), code
 
 @app.route('/admin_command/<command>')
@@ -121,7 +123,7 @@ def admin_command(command):
         s, code = format_CompleteProcess('shutdown -r +1')
         doc_results.append(s)
         return str(doc)
-                        
+
     if command=='shutdown':
         s, code = format_CompleteProcess('shutdown -P +1')
         doc_results.append(s)
@@ -194,7 +196,7 @@ def event_mod(command, description):
 def set_expiration(response, days=7):
     response.expires = time.gmtime(time.time()+ days*DAY)
     return response
-    
+
 ##def in_one_week():
 ##    t = time.time() + DAY * 7
 ##    #return time.strftime(' %a, %d %b %Y %H:%M:%S GMT', time.gmtime(t))
@@ -214,7 +216,7 @@ def css():
 def oh_no_robot():
     """Tell them not to browse the motor control interface."""
     return set_expiration(Response(ROBOT, mimetype  = 'text/plain'))
-    
+
 @app.route('/favicon.ico')
 def favicon():
     """I chose a darkmode raspberrypi icon. There are others out there, suit yourself."""
@@ -261,7 +263,7 @@ def build_error_pages(PORT):
 ###############################################################################
 
 if __name__ == '__main__':
-    
+
     def finish_test():
         """Call everything once, before we enter wait state, to fail early."""
         for f in (index, css, oh_no_robot, favicon):
@@ -276,7 +278,7 @@ if __name__ == '__main__':
             time.sleep(2)
             for motor, pins, name in motors:
                 motors.set(motor, STOP)
-                
+
         morning(True)
         evening(True)
 
@@ -306,11 +308,11 @@ if __name__ == '__main__':
             log('cd %s => %s' % (os.getcwd(), newcwd))
             os.chdir(newcwd)
         log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
-            
+
     with motors:
         relocate()
         finish_test()
-        
+
         successes={}
         failures={}
         server_thread = []
@@ -333,14 +335,14 @@ if __name__ == '__main__':
                                       , daemon=True
                                       )
             server_thread.append(thread)
-            
+
             thread.start()
             #event = Event(.01, "start server", startup, [port])
             #event.timer.setDaemon()
             time.sleep(1)
             if len(successes):
                 break
-        
+
         try:
             while server_thread:
                 time.sleep(1)
