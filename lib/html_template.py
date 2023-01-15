@@ -17,11 +17,12 @@ else:
 
 class html:
     """Simple class for building html templates from code with minimal boilerplating."""
-    def __init__(self, identity='html', indent=HTML_START_INDENT):
+    def __init__(self, identity='html', indent=HTML_START_INDENT, sub_indent=HTML_INDENT):
         self.identity = identity
         self.args = {}
         self.children = []
         self.indent = indent
+        self.sub_indent = sub_indent
     def __call__(self, **kargs):
         if '_indent' in kargs:
             self.indent = kargs.pop('_indent')
@@ -30,7 +31,8 @@ class html:
         return self
     def __getattr__(self, name):
         #print('getattr(%r})'% name)
-        ret = html(name, indent='' if name == 'a' else self.indent+HTML_INDENT)
+        ret = html(name, indent='' if name in ('a','td','th','textarea') else self.indent + self.sub_indent,
+                   sub_indent = '' if name in ('a','td','th','textarea') else self.sub_indent)
         self.children.append(ret)
         return ret
     def __str__(self):
@@ -45,14 +47,15 @@ class html:
 
         if self.children:
             return '%s<%s%s>%s%s</%s>' % (
-                prefix, self.identity, format_args(), format_children(self.indent+HTML_INDENT), self.indent, self.identity
+                prefix, self.identity, format_args(), format_children(self.indent + self.sub_indent), self.indent, self.identity
                 )
         else:
             return '%s<%s %s />' % (
                 prefix, self.identity, format_args()
                 )
     def append(self, child):
-        self.children.append(child)
+        if child:
+            self.children.append(child)
         return self
 
 CSS= """
@@ -109,7 +112,7 @@ if MINIFY:
     #serve as seperate .css file so that the browser can cache it.
     STYLE = str(html('link')(rel='stylesheet', type='text/css', href='/shadebox.css'))
 else:
-    STYLE = str(html('style', HTML_START_INDENT+HTML_INDENT+HTML_INDENT).append(CSS))+str()
+    STYLE = str(html('style', HTML_START_INDENT+HTML_INDENT+HTML_INDENT).append(CSS))#+str()
 
 KEYWORDS = str(html('meta')(name="Keywords", content='motorized,shade,control,automation,RPi.GPIO'))
 
