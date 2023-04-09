@@ -220,11 +220,11 @@ def oh_no_robot():
 @app.route('/favicon.ico')
 def favicon():
     """I chose a darkmode raspberrypi icon. There are others out there, suit yourself."""
+    with open('./static/favicon.png','rb') as f:
+        data = f.read()
+        
     return set_expiration(
-        Response(
-            open('./static/favicon.png','rb').read(),
-            mimetype = 'image/png'
-            )
+        Response( data, mimetype = 'image/png' )
         )
 
 def build_error_pages(PORT):
@@ -280,6 +280,7 @@ if __name__ == '__main__':
                 motors.set(motor, STOP)
 
         morning(True)
+        reboot(True)
         evening(True)
 
     #TODO make these into json and editable
@@ -301,6 +302,13 @@ if __name__ == '__main__':
             print("starting evening routine")
             motor_start(0, DOWN)
 
+    def reboot(startup=False):
+        """Until we figure out how the daemon is dying after about a week,
+        reboot daily."""
+        EventAt(7,0,0, "daily reboot", reboot, daemon=True)
+        if not startup:#if alarm is really going off, do:
+            print("scheduled down time")
+            admin_command('restart')
 
     def relocate():
         if os.getcwd() != os.path.abspath(__file__):
