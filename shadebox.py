@@ -139,7 +139,7 @@ def admin_command(command):
     if command=='update':
         s, code = format_CompleteProcess('git pull')
         if not code:
-            s2, code = format_CompleteProcess('%s setup.py' % sys.executable)
+            s2, code = format_CompleteProcess('sudo %s setup.py' % sys.executable)
             s += s2
             if not code:
                 #s2, code = format_CompleteProcess('systemctl restart shadebox.service')
