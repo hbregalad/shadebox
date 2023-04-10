@@ -1,6 +1,6 @@
 "event_list.py"
 
-from threading import Timer 		#the behavior we are wrapping
+from threading import Timer, current_thread 		#the behavior we are wrapping
 from math import ceil
 from sys import stderr
 from traceback import print_exc
@@ -20,29 +20,32 @@ class Event:
         if self.SawKeyboardInterrupt:
             Ex = self.SawKeyboardInterrupt.pop()
             self.cancel(True, True)
-            raise KeyboardInterrupt from Ex
+            self.SawKeyboardInterrupt.append(Ex.__class__())
+            raise Ex
 
     def trigger(self):
-        "take care of some house keeping before running user event code"
+        "take care of some house keeping, then call the user event code"
         try:
-            self.EventList.pop(self.id)
-        except KeyboardInterrupt as E:
-            self.SawKeyboardInterrupt.append(E)
-        except KeyError:
-            WARN(self.id, "canceled, skipping")
-            return
+            try:
+                self.EventList.pop(self.id)
+            except KeyError:
+                WARN(self.id, "canceled, skipping")
+                return
+            action, args, kwargs = self.action
 
-        action, args, kwargs = self.action
-        try:
-            action(*args, **kwargs)
-        except KeyboardInterrupt as E:
-            self.SawKeyboardInterrupt.append(E)
-            #raise
-        except:
-            print(self)
-            print("%r(*%r, **%r)"%(action, args, kwargs))
-            print_exc()
-            #raise
+            try:
+                action(*args, **kwargs)
+            except RuntimeError:
+                raise
+            except Exception:
+                print(self)
+                print("%r(*%r, **%r)"%(action, args, kwargs))
+                print_exc()
+        except (KeyboardInterrupt, RuntimeError) as E:
+            if self.timer is current_thread():
+                self.SawKeyboardInterrupt.append(E)
+            else:
+                raise
 
     def __init__(self, interval, description, action, action_args=None, action_kwargs=None, exclusive_description=True,
                  cancel_activates=False, daemon=True):
@@ -76,8 +79,10 @@ class Event:
             self.trigger()
             self._check_keyboard()
         else:
-            self.timer = Timer(interval, self.trigger)
-            self.timer.start()
+            timer = self.timer = Timer(interval, self.trigger)
+            if daemon is not None:#Timer constructor doesn't provide a way to set this.
+                timer.setDaemon(daemon)
+            timer.start()
 
     def cancel(self, All=False, DontCheck=False):
         """prevent Event action from running
@@ -85,14 +90,15 @@ class Event:
         set DontCheck to skip reraising KeyboardInterupt() if it happened inside an event.
         """
 
-        work = list(self) if All else [self]
+        work = list(self.EventList.values()) if All else [self]
 
         for event in work:
-            print('canceling ',event)
+            #if not DontCheck:
+            print('Canceling:', event.id[1])
             event.timer.cancel()#make sure that other thread does not run
 
             if event.cancel_activates:
-                event.trigger()#run in this thread.
+                event.trigger(All or DontCheck)#run in this thread.
             else:
                 try:
                     event.EventList.pop(event.id)
@@ -157,10 +163,8 @@ class Event:
         return self.id[1]
 
     def __repr__(self):
-        self._check_keyboard()
         return "Event(%r, %s)" % (self.interval_remaining(), self.id[1])
     def __str__(self):
-        self._check_keyboard()
         return "in: %r seconds do: %s" %(self.interval_remaining(),self.id[1])
 
     def next(self):
@@ -186,7 +190,10 @@ class Event:
             return self.next().join()
         else:
             return time.sleep(max(0, self.interval_remaining()+.02))
-
+    def __enter__(self):
+        return self
+    def __exit__(self, *a):
+        return self.cancel(True, True)
 DAY = 24*60*60
 def mktime(hours=0, minutes=0, seconds=0):
     "returns time in seconds for when the given local time happens"
@@ -198,7 +205,9 @@ def midnight():
     "returns time in seconds for when the previous midnight"
     return mktime()
 
-def EventAt(hours=0, minutes=0, seconds=0, description="Alarm", action=lambda:None, args=None, kwargs=None, exclusive_description=True,cancel_activates=False, daemon=True):
+def EventAt(hours=0, minutes=0, seconds=0, description="Alarm",
+            action=lambda:None, args=None, kwargs=None,
+            exclusive_description=True, cancel_activates=False, daemon=True):
     """schedules an Event via hours, minutes, and seconds, instead of seconds into the future"""
     t = mktime(hours, minutes, seconds)
     if t<time.time(): t+=DAY
@@ -210,6 +219,7 @@ if __name__=='__main__':
         raise KeyboardInterrupt(die)
     def main():
         "test"
+        
         for interval in range(5):
             event = Event(interval, "say %s" % interval, (lambda i:lambda:print(i))(interval))
 
@@ -217,22 +227,23 @@ if __name__=='__main__':
             print(list(event))
             event.join(Any=True)
 
-        tomorrow = Event(24*60*60, "This time Tomorrow", print)
+        tomorrow = Event(DAY, "This time Tomorrow", print)
         _sunrise = EventAt(6)
         _sunset = EventAt(5+12, description="down")
-        for event in tomorrow:
-            print(event)
-            print(event.format_interval())
-            event.cancel()
+        with tomorrow:
+            for event in tomorrow:
+                print(event)
+                print(event.format_interval())
+                event.cancel()
 
-        try:
+            #try:
             event = Event(0.01, 'die', die)
             print('got here')
             time.sleep(.1)
             print('got here')
             for event in event:
                 print('got into loop')
-            print('got out of loop')
-        finally:
-            event.cancel(True)
+                print('got out of loop')
+##            finally:
+##                event.cancel(True, True)
     main()

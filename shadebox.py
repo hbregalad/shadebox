@@ -4,7 +4,7 @@
 import os, sys, threading
 
 from math import ceil
-from flask import Flask, Response
+from flask import Flask, Response, request
 
 from lib import *
 #from pprint import pprint
@@ -118,6 +118,14 @@ def admin_command(command):
     def die():
         log('trying to restart')
         server_thread.clear()
+        #raise RuntimeError('Not running with the Werkzeug Server')
+        raise KeyboardInterrupt()
+##        die2()
+##    def die2(): #this method is no longer part of werkzeug
+##        func = request.environ.get('werkzeug.server.shutdown')
+##        if func is None:
+##            raise RuntimeError('Not running with the Werkzeug Server')
+##        func()
 
     if command=='restart':
         s, code = format_CompleteProcess('shutdown -r +1')
@@ -193,8 +201,8 @@ def event_mod(command, description):
         return render_main_page('event not found: %s' % description)
 
 
-def set_expiration(response, days=7):
-    response.expires = time.gmtime(time.time()+ days*DAY)
+def set_expiration(response, days=14):
+    response.expires = time.gmtime(time.time() + days*DAY)
     return response
 
 ##def in_one_week():
@@ -222,10 +230,8 @@ def favicon():
     """I chose a darkmode raspberrypi icon. There are others out there, suit yourself."""
     with open('./static/favicon.png','rb') as f:
         data = f.read()
-        
-    return set_expiration(
-        Response( data, mimetype = 'image/png' )
-        )
+
+    return set_expiration(Response(data, mimetype = 'image/png'))
 
 def build_error_pages(PORT):
     """Prerendered error pages, and save."""
@@ -258,7 +264,6 @@ def build_error_pages(PORT):
         return ep, new_err_num, loc
     for err in error_redirect:
         app.errorhandler(err)(error)
-#build_error_pages()
 
 ###############################################################################
 
@@ -275,7 +280,7 @@ if __name__ == '__main__':
             for motor, pins, name in motors:
                 if not pins: continue
                 motors.set(motor, motor)
-            time.sleep(2)
+            time.sleep(1)
             for motor, pins, name in motors:
                 motors.set(motor, STOP)
 
@@ -317,19 +322,20 @@ if __name__ == '__main__':
             os.chdir(newcwd)
         log("running with pid=%s in cwd=%s" % ( os.getpid(), os.getcwd() ), file=sys.stderr)
 
-    with motors:
+    with motors, events:
         relocate()
         finish_test()
-
         successes={}
         failures={}
         server_thread = []
+
 
         def startup(port):
             build_error_pages(port)
             try:
                 successes[port]=True
                 app.run(host = '0.0.0.0', port=port)
+
             except PermissionError:
                 log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
                 del successes[port]
@@ -351,10 +357,12 @@ if __name__ == '__main__':
             if len(successes):
                 break
 
-        try:
-            while server_thread:
-                time.sleep(1)
-        finally:
-            print('exiting something')
-            events.cancel(True)
+        #try:
+        while server_thread:
+            time.sleep(1)
+
+        #finally:
+        print('exiting')
+        #    events.cancel(True,True)
 ##            exit()
+    exit()
