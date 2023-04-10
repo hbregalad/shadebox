@@ -274,15 +274,15 @@ if __name__ == '__main__':
         for f in (index, css, oh_no_robot, favicon):
             f()
 
-        if True:#GPIO_DEBUG:
+        if not motors.boards:#GPIO_DEBUG:
             #only test this if we're NOT talking to real hardware,
             #only spaming the debug handler...
             for motor, pins, name in motors:
                 if not pins: continue
-                motors.set(motor, motor)
-            time.sleep(1)
-            for motor, pins, name in motors:
-                motors.set(motor, STOP)
+                motors.set(motor, 2)
+##            time.sleep(1)
+##            for motor, pins, name in motors:
+##                motors.set(motor, STOP)
 
         morning(True)
         reboot(True)

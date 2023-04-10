@@ -74,6 +74,7 @@ class Driver:
                            )
             self.state = [STOP] * (len(self.motors)+1)
             #self.set()#sets all to 0
+            self.boards = None
             return
 
         self.boards = tuple( map( lambda a: a.split()[-1], boards) ) #I don't trust this to work on multiple boards, fix this if multiple boards needed or driver's -list format changes.
