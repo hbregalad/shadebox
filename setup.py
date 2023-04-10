@@ -1,5 +1,6 @@
+#!sudo env python3 setup.py
 "setup.py"
-import os, sys
+import os, sys, traceback
 import subprocess
 #if __file__:
 
@@ -57,8 +58,8 @@ def make_service(file):
 
     try:
         os.remove(destination)
-    except:
-        pass
+    except Exception as E:
+        print("Error removing destination:", E)
     
     try:
         os.link(service, destination)
@@ -66,7 +67,8 @@ def make_service(file):
         subprocess.check_output([systemctl, 'enable', destination]) #, '--now'])
         #subprocess.Popen(
         
-    except:
+    except Exception as E:
+        traceback.print_exc()
         print("try sudo env python3 setup.py")
         raise
 
