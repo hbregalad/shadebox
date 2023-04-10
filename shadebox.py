@@ -60,7 +60,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
 
     lt = time.strftime(TIME_FORMAT_STRING, time.localtime()).replace(' 0',' ')
     body.p(align='center').append("Server local time is:%s" % lt)
-
+    #TODO: I'd like a memory usage stat here or down by admin commands.
     time_table = body.table
     time_table.tr.th(colspan='3').append("Scheduled events:")
     time_table_header = time_table.tr
@@ -274,15 +274,20 @@ if __name__ == '__main__':
         for f in (index, css, oh_no_robot, favicon):
             f()
 
-        if not motors.boards:#GPIO_DEBUG:
+        if True:#not motors.boards:
             #only test this if we're NOT talking to real hardware,
             #only spaming the debug handler...
             for motor, pins, name in motors:
                 if not pins: continue
-                motors.set(motor, 2)
-##            time.sleep(1)
-##            for motor, pins, name in motors:
-##                motors.set(motor, STOP)
+                motors.set(motor, 2)#bump up
+            time.sleep(1)
+            for motor, pins, name in motors:
+                motors.set(motor, STOP)
+                #Actually no, this also safely tests Events and motor power,
+                #the events should stop the motor after a tenth of a second (bump up)
+                #and with this sleep()+ set(stop), it should also stop power even when events are not working.
+                #and finally, the relay clicks serves to alert anyone physically present that the service is up and running.
+                
 
         morning(True)
         reboot(True)
