@@ -12,5 +12,5 @@ def term(signum, frame):
 signal.signal(signal.SIGTERM, term)
 
 def quitting_sleep(seconds):
-    assert not QUITING
+    if QUITING: raise KeyboardInterrupt("received signal %s" % signum)
     return time.sleep(seconds)
