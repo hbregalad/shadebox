@@ -1,13 +1,13 @@
 #data.py
 if False:
  DIRECTIONS=(
-    (0, 1, 30,   'Up', '&lt;&lt;&lt;'), # up forever
+    (0, 1, 30,   'Up', '&lt;&lt;&lt;'), # up for 30 seconds
     (0, 1,  5,   'Up',     '&lt;&lt;'), # up for 5 seconds
     (0, 1, .1,   'Up',        '|&lt;'), # up for .1 seconds
     (0, 0,  0, 'Stop',           '||'), #stop
     (1, 0, .1, 'Down',        '&gt;|'), # down for .1 seconds
-    (1, 0,  5, 'Down',     '&gt;&gt;'), # down for .1 seconds
-    (1, 0, 30, 'Down', '&gt;&gt;&gt;'), # down for .1 seconds
+    (1, 0,  5, 'Down',     '&gt;&gt;'), # down for 5 seconds
+    (1, 0, 30, 'Down', '&gt;&gt;&gt;'), # down for 30 seconds
  )
  STOP = 3
  MOTOR_PINS=(
@@ -15,7 +15,7 @@ if False:
     (7,8),
     (11,12),
     (22,23),
-    tuple() #Empty tuple is tests False.
+    tuple() #Empty tuple tests False.
  )
  def motor_name(index):
     try:

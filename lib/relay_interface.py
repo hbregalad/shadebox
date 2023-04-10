@@ -82,8 +82,7 @@ class Driver:
         #This builds the list of boards we'll be using.
         #The data structure is just a tuple of ( index,
         #                                        ((board_id,pin_down), (board_id,pin_up)),
-        #                                        'motor{board}:{shade_number}',
-        #                                        state,
+        #                                        'motor{board}:{"board_channel"}',
         #                                    )
         self.motors = tuple( (
             (next(index),
@@ -98,16 +97,15 @@ class Driver:
         self.state = [STOP] * (len(self.motors)+1)
         self.set()#sets all to 0
     def _set_channels(self, motor, direction):
+        """Set both pins in motor to the bit values for the specified direction
+        then save the motor state for future reference.
+        """
         for channel, bit in zip(motor[CHANNEL_DATA], direction[PIN_DATA]):
             board_id, channel_id = channel
             try:
                 out = _retry_check_output(['8relay', str(board_id), 'write', str(channel_id), str(bit)])
             except FileNotFoundError:
                 pass
-
-            #log(out)
-
-            #log("Channel {} set to {}".format(channel, bit))
         self.state[motor[INDEX]] = direction[INDEX]
         log("{} set to {}".format(motor[MOTOR_NAME],direction[DIRECTION_NAME]))
 
@@ -133,9 +131,10 @@ class Driver:
                 )
 
         if motor is False:
-            for motor in self.motors[:-1]:
-                self.set(motor, direction)
-            return
+            motor = len(self.motors)-1
+##            for motor in self.motors[:-1]:
+##                self.set(motor, direction)
+##            return
 
         if isinstance(motor, (int, str)):
             try:
@@ -179,12 +178,14 @@ class Driver:
             else:
                 Event.cancel_by_description(Event, "motor=%s stop" % motor)
     def __iter__(self):
+        """Return list of motors"""
         yield from iter(self.motors)
         #yield self.all
     def __enter__(self):
-        """Return list of motors"""
+        "Context manager so that everything stops regardless of how we die"
         return self
     def __exit__(self, *args):
+        "Context manager so that everything stops regardless of how we die"
         self.set()#sets all to stop
     def __getitem__(self, val):
         return self.motors[val]
