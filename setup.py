@@ -20,8 +20,8 @@ ConditionPathExists={0}
 
 [Service]
 Type=idle
-ExecStart=sh -c '{2} {0} | tee -a {1}'
-ExecStop=/bin/kill -INT $MAINPID
+ExecStart=/usr/bin/nohup {2} {0}
+ExecStop=/bin/kill --signal SIGINT $MAINPID
 Restart=on-failure
 
 [Install]
