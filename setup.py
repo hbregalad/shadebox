@@ -20,13 +20,17 @@ ConditionPathExists={0}
 
 [Service]
 Type=idle
-ExecStart=sh -c '/usr/bin/nohup {2} {0} | tee -a {1}'
+ExecStart=sh -c '{2} {0} | tee -a {1}'
 ExecStop=/bin/kill -INT $MAINPID
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 """
+
+#working: ExecStart=/usr/bin/nohup {2} {0} | tee -a {1}
+#not working ExecStart=sh -c '/usr/bin/nohup {2} {0} | tee -a {1}'
+
 # > {1} 2>&1
 
 
