@@ -46,8 +46,8 @@ def make_service(file):
     service = file.replace('setup.py', 'shadebox.service')
     destination = '/etc/systemd/system/shadebox.service'
 
-    with open(log, mode='w') as f:
-        f.write('log created')
+##    with open(log, mode='w') as f:
+##        f.write('log created')
     
     print(main, log, service, sep='\n')
     
@@ -56,10 +56,10 @@ def make_service(file):
     with open(service, 'w') as f:
         f.write(data)
         
-    try:
-        subprocess.check_output([chmod, '664', destination])
-    except Exception as E:
-        print("Error setting log permissions.")
+##    try:
+##        subprocess.check_output([chmod, '664', destination])
+##    except Exception as E:
+##        print("Error setting log permissions.")
 
     try:
         os.remove(destination)
