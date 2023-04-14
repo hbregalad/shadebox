@@ -20,7 +20,7 @@ ConditionPathExists={0}
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/nohup {2} {0} | tee -a {1}
+ExecStart=sh -c '/usr/bin/nohup {2} {0} | tee -a {1}'
 ExecStop=/bin/kill -INT $MAINPID
 Restart=on-failure
 
