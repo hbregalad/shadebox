@@ -79,10 +79,10 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
         row_td.a(title='Trigger!', href='/event/trigger/%s'%event.description().replace(' ','_')
             ).append('!')
 
-    if admin_commands:
+    if ADMIN_COMMANDS:
         ac = body.p(align='right')
         ac.append('admin commands:')
-        for command in admin_commands:
+        for command in ADMIN_COMMANDS:
             ac.a(href='/admin_command/%s' % command, indent='').append(command)
             ac.append(' :: ')
         #row.td.append('All:')
@@ -94,7 +94,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     return d#str(doc)
 
 ###############################################################################
-admin_commands = 'status quit update restart shutdown'.split()
+ADMIN_COMMANDS = 'status quit update restart shutdown'.split()
 
 def format_CompleteProcess(shell_command, log_output=True):
     """Runs shell_command in a new process, and formats the results.
@@ -117,16 +117,17 @@ def admin_command(command):
 
     def die():
         log('trying to restart')
-        server_thread.clear()
+        #server_thread.clear()
         #raise RuntimeError('Not running with the Werkzeug Server')
         raise KeyboardInterrupt()
+        #exit()
 ##        die2()
 ##    def die2(): #this method is no longer part of werkzeug
 ##        func = request.environ.get('werkzeug.server.shutdown')
 ##        if func is None:
 ##            raise RuntimeError('Not running with the Werkzeug Server')
 ##        func()
-
+    
     if command=='restart':
         s, code = format_CompleteProcess('shutdown -r +1')
         doc_results.append(s)
@@ -147,10 +148,12 @@ def admin_command(command):
                 #if not code:
                     s+='Restarting shadebox server...'
                     Event(1,'Restarting shadebox server...', die)
+            
         doc_results.append(s)
         return str(doc)
     if command=='quit':
         Event(1, 'Exiting shadebox server...', die)
+        raise KeyboardInterrupt()
         return render_main_page("Quitting soon ...")
     if command=='status':
         s, code = format_CompleteProcess('systemctl status shadebox.service', False)
@@ -287,7 +290,9 @@ if __name__ == '__main__':
                 #the events should stop the motor after a tenth of a second (bump up)
                 #and with this sleep()+ set(stop), it should also stop power even when events are not working.
                 #and finally, the relay clicks serves to alert anyone physically present that the service is up and running.
-                
+        if not motors.boards:
+            global ADMIN_COMMANDS
+            ADMIN_COMMANDS = 'status quit'.split()
 
         morning(True)
         reboot(True)
@@ -315,7 +320,7 @@ if __name__ == '__main__':
     def reboot(startup=False):
         """Until we figure out how the daemon is dying after about a week,
         reboot daily."""
-        EventAt(7,0,0, "daily reboot", reboot, daemon=True)
+        EventAt(7+24,0,0, "daily reboot", reboot, daemon=True)
         if not startup:#if alarm is really going off, do:
             print("scheduled down time")
             admin_command('restart')
@@ -350,9 +355,7 @@ if __name__ == '__main__':
             #    log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
 
         for port in (80, 5000):#try each port in turn, but stop after one success
-            thread = threading.Thread(target=startup, args=[port]
-                                      , daemon=True
-                                      )
+            thread = threading.Thread(target=startup, args=[port], daemon=True)
             server_thread.append(thread)
 
             thread.start()
@@ -363,11 +366,16 @@ if __name__ == '__main__':
                 break
 
         #try:
+##        try:
         while server_thread:
-            time.sleep(1)
-
+            events.join(All=True)
+##        finally:
+##            if server_thread:
+                
+                
+            
         #finally:
-        print('exiting')
+        log('exiting')
         #    events.cancel(True,True)
 ##            exit()
     exit()
