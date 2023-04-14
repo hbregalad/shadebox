@@ -114,7 +114,11 @@ def admin_command(command):
     docb = doc.body
     doc_results = doc.p
     doc.p(align='right').a(href='/').append('return to Home')
-
+    if not motors.boards and command in 'update restart shutdown'.split():
+        echo = 'echo ' #block commands from being interpreted, but continue
+    else:
+        echo = ''
+        
     def die():
         log('trying to restart')
         #server_thread.clear()
@@ -129,18 +133,18 @@ def admin_command(command):
 ##        func()
     
     if command=='restart':
-        s, code = format_CompleteProcess('shutdown -r +1')
+        s, code = format_CompleteProcess(echo + 'shutdown -r +1')
         doc_results.append(s)
         return str(doc)
 
     if command=='shutdown':
-        s, code = format_CompleteProcess('shutdown -P +1')
+        s, code = format_CompleteProcess(echo + 'shutdown -P +1')
         doc_results.append(s)
         return str(doc)
     if command=='update':
-        s, code = format_CompleteProcess('git pull')
+        s, code = format_CompleteProcess(echo + 'git pull')
         if not code:
-            s2, code = format_CompleteProcess('sudo %s setup.py' % sys.executable)
+            s2, code = format_CompleteProcess(echo + 'sudo %s setup.py' % sys.executable)
             s += s2
             if not code:
                 #s2, code = format_CompleteProcess('systemctl restart shadebox.service')
@@ -296,7 +300,7 @@ if __name__ == '__main__':
                 #and finally, the relay clicks serves to alert anyone physically present that the service is up and running.
         if not motors.boards:
             global ADMIN_COMMANDS
-            ADMIN_COMMANDS = 'status quit'.split()
+            ADMIN_COMMANDS = 'status quit'.split()#hide commnads that should not be run on debug machine.
 
         morning(True)
         reboot(True)
