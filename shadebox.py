@@ -160,8 +160,8 @@ def admin_command(command):
         doc_results.append(s)
         s, code = format_CompleteProcess('journalctl -u shadebox.service -b --no-pager', False)
         doc_results.append(s)
-        s, code = format_CompleteProcess('cat shadebox.log', False)
-        doc_results.append(s)
+##        s, code = format_CompleteProcess('cat shadebox.log', False)
+##        doc_results.append(s)
         return str(doc)
 
 ###############################################################################
@@ -324,7 +324,7 @@ if __name__ == '__main__':
     def reboot(startup=False):
         """Until we figure out how the daemon is dying after about a week,
         reboot daily."""
-        EventAt(7+24,0,0, "daily reboot", reboot, daemon=True)
+        EventAt(8,0,0, "daily reboot", reboot, daemon=True)
         if not startup:#if alarm is really going off, do:
             print("scheduled down time")
             admin_command('restart')

@@ -27,12 +27,8 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 """
-
-#working: ExecStart=/usr/bin/nohup {2} {0} | tee -a {1}
-#not working ExecStart=sh -c '/usr/bin/nohup {2} {0} | tee -a {1}'
-
 # > {1} 2>&1
-
+#ExecStart=/bin/sh -c '/usr/bin/nohup {2} {0} | tee -a {1}'
 
 
 def which(command):
