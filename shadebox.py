@@ -158,6 +158,8 @@ def admin_command(command):
     if command=='status':
         s, code = format_CompleteProcess('systemctl status shadebox.service', False)
         doc_results.append(s)
+        s, code = format_CompleteProcess('cat shadebox.log', False)
+        doc_results.append(s)
         return str(doc)
 
 ###############################################################################
