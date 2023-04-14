@@ -1,6 +1,6 @@
 "event_list.py"
 
-from threading import Timer, current_thread 		#the behavior we are wrapping
+from threading import Timer, current_thread, main_thread 		#the behavior we are wrapping
 from math import ceil
 from sys import stderr
 from traceback import print_exc
@@ -17,11 +17,9 @@ class Event:
     SawKeyboardInterrupt = []#used for inter-thread communication
     def _check_keyboard(self):
         "reraise keyboard interupt in main thread"
-        if self.SawKeyboardInterrupt:
-            Ex = self.SawKeyboardInterrupt.pop()
-            self.cancel(True, True)
-            self.SawKeyboardInterrupt.append(Ex.__class__())
-            raise Ex
+        if self.SawKeyboardInterrupt and current_thread() == main_thread():
+            Ex = self.SawKeyboardInterrupt.pop()#receive Exception from other thread
+            raise Ex #put back in circulation
 
     def trigger(self):
         "take care of some house keeping, then call the user event code"
@@ -41,8 +39,8 @@ class Event:
                 print(self)
                 print("%r(*%r, **%r)"%(action, args, kwargs))
                 print_exc()
-        except (KeyboardInterrupt, RuntimeError) as E:
-            if self.timer is current_thread():
+        except (KeyboardInterrupt, RuntimeError, SystemExit) as E:
+            if current_thread() != main_thread():
                 self.SawKeyboardInterrupt.append(E)
             else:
                 raise
@@ -84,7 +82,7 @@ class Event:
                 timer.setDaemon(daemon)
             timer.start()
 
-    def cancel(self, All=False, DontCheck=False):
+    def cancel(self, All=False):#, DontCheck=False):
         """prevent Event action from running
         set All to .cancel() all registerd soonest first
         set DontCheck to skip reraising KeyboardInterupt() if it happened inside an event.
@@ -96,16 +94,17 @@ class Event:
             #if not DontCheck:
             print('Canceling:', event.id[1])
             event.timer.cancel()#make sure that other thread does not run
-
             if event.cancel_activates:
-                event.trigger(All or DontCheck)#run in this thread.
+                event.trigger()#run in this thread, immediatly
             else:
                 try:
                     event.EventList.pop(event.id)
                 except KeyError:
                     WARN("Event(%r) Warning: cancel() after Event already run or canceled. "%self.id)
                     return
-        if not DontCheck: self._check_keyboard()
+                
+        #if not DontCheck:
+        self._check_keyboard()
     def cancel_by_description(self_or_cls, description):
         """Cancels all registered events matching [description]"""
         for event in list(self_or_cls.EventList.values()):
@@ -142,6 +141,7 @@ class Event:
     def interval_remaining(self):
         "return seconds remaining before event"
         self._check_keyboard()
+        if self.id not in self.EventList: return 0 #canceled, don't wait.
         return max(0, self.id[0] - time.time())
     def format_interval(self):
         """formats the event time either as seconds remaining (if < 1 minute),
@@ -179,7 +179,7 @@ class Event:
         self._check_expired()
         return self.EventList[max(self.EventList.keys())]
 
-    def join(self, Any=False, All=False):
+    def join(self, Any=False, All=False, check_interval=.3):
         """sleep()s until this event is scheduled to have run.
         if Any is set, instead executes self.next().join()
         if All is set, instead executes self.last().join()"""
@@ -189,11 +189,14 @@ class Event:
         elif Any:
             return self.next().join()
         else:
-            return time.sleep(max(0, self.interval_remaining()+.02))
+##            if current_thread() == main_thread():
+            while check_interval < self.interval_remaining(): #self._check_keyboard() is happening inside
+                time.sleep(check_interval)
+            return time.sleep(max(0, self.interval_remaining()+.02))#no negative intervals
     def __enter__(self):
         return self
     def __exit__(self, *a):
-        return self.cancel(True, True)
+        return self.cancel(True)
 DAY = 24*60*60
 def mktime(hours=0, minutes=0, seconds=0):
     "returns time in seconds for when the given local time happens"

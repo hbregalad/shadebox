@@ -20,7 +20,7 @@ ConditionPathExists={0}
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/nohup {2} {0}
+ExecStart=/usr/bin/nohup {2} {0} | tee -a {1}
 ExecStop=/bin/kill -INT $MAINPID
 Restart=on-failure
 
@@ -55,6 +55,11 @@ def make_service(file):
 
     with open(service, 'w') as f:
         f.write(data)
+        
+    try:
+        subprocess.check_output([chmod, '664', destination])
+    except Exception as E:
+        print("Error setting log permissions.")
 
     try:
         os.remove(destination)
