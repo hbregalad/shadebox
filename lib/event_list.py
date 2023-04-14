@@ -184,15 +184,17 @@ class Event:
         if Any is set, instead executes self.next().join()
         if All is set, instead executes self.last().join()"""
 
+        
         if All:
-            return self.last().join()
+            event = self.last()#.join()
         elif Any:
-            return self.next().join()
+            event = self.next()#.join()
         else:
-##            if current_thread() == main_thread():
-            while check_interval < self.interval_remaining(): #self._check_keyboard() is happening inside
-                time.sleep(check_interval)
-            return time.sleep(max(0, self.interval_remaining()+.02))#no negative intervals
+            event = self
+            
+        while check_interval < event.interval_remaining(): #self._check_keyboard() is happening inside
+            time.sleep(check_interval)
+        return time.sleep(max(0, event.interval_remaining()+.02))#no negative intervals
     def __enter__(self):
         return self
     def __exit__(self, *a):
