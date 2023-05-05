@@ -60,7 +60,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
 
     lt = time.strftime(TIME_FORMAT_STRING, time.localtime()).replace(' 0',' ')
     ut = time.strftime(DATE_FORMAT_STRING, time.localtime(LAST_UPDATE)).replace(' 0',' ')
-    body.p(align='center').append("Server local time is: %s Last update time was: %s" % (lt, ut))
+    body.p(align='center').append("Server local time is: %s<br />Last update time was: %s" % (lt, ut))
     
     #TODO: I'd like a memory usage stat here or down by admin commands.
     time_table = body.table
