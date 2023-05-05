@@ -2,6 +2,7 @@
 "setup.py"
 import os, sys, traceback
 import subprocess
+import time
 #if __file__:
 
 #print(__file__)
@@ -78,4 +79,9 @@ def make_service(file):
         raise
 
 
-make_service(os.path.abspath(__file__))
+if __name__=='__main__':
+    make_service(os.path.abspath(__file__))
+
+    version_file = __file__.replace('setup.py', os.sep.join(['lib','version.py']))
+    with open(version_file, 'w') as f:
+        print('LAST_UPDATE =', time.time(), '\n', file=f)

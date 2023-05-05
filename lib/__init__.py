@@ -6,3 +6,4 @@ from .html_template import *
 #from .querys import *
 from .event_list import *
 from .relay_interface import *
+from .version import *

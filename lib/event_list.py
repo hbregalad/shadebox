@@ -9,6 +9,7 @@ import time
 
 WARN = lambda *a,**k: print(*a, file=stderr, **k)
 
+DATE_FORMAT_STRING = "%a %b %d, %H:%M"#' %H:%M:%S '
 TIME_FORMAT_STRING = 'at %H:%M '#' %H:%M:%S '
 MINUTES_FORMAT_STRING = 'in %H:%M:%S '
 class Event:
