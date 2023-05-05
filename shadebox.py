@@ -328,7 +328,7 @@ if __name__ == '__main__':
     def reboot(startup=False):
         """Until we figure out how the daemon is dying after about a week,
         reboot daily."""
-        EventAt(8,0,0, "daily reboot", reboot, daemon=True)
+        EventAt(8,0,0, "daily reboot", reboot, cancel_activates=True, daemon=True)
         if not startup:#if alarm is really going off, do:
             print("scheduled down time")
             admin_command('restart')

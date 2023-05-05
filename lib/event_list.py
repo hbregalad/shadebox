@@ -36,8 +36,8 @@ class Event:
             except RuntimeError:
                 raise
             except Exception:
-                print(self)
-                print("%r(*%r, **%r)"%(action, args, kwargs))
+                WARN(self)
+                WARN("%r(*%r, **%r)"%(action, args, kwargs))
                 print_exc()
         except (KeyboardInterrupt, RuntimeError, SystemExit) as E:
             if current_thread() != main_thread():
@@ -113,7 +113,9 @@ class Event:
     def _check_expired(self):
         "Find all expired events and drop them from the .EventList"
 
-        expire_time = time.time()-1#allow one second of scheduling flexibility before complaining.
+        expire_time = time.time()-6*60*60 #allow one second I mean 6 minutes of scheduling flexibility before complaining.
+        #I have had a timer execute 5 minutes and 2 seconds late. After more examples I will try to decide how to adjust our strategy.
+        
         expired = [k for k in self.EventList
                    if k[0]<expire_time]
 
@@ -121,7 +123,8 @@ class Event:
             WARN("Warning: expired events:%r" % expired)
             for k in expired:
                 try:
-                    self.EventList.pop(k)
+                    #self.EventList.pop(k)
+                    self.EventList[k].cancel()
                 except KeyError:
                     pass
         self._check_keyboard()
