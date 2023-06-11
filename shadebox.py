@@ -48,7 +48,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     def anchor(html_row, href, caption, highlighted=False, replace_v=False):
         anchor = html_row.td.a(href=href)
         if replace_v:
-            caption = caption.replace('<','^').replace('>','v')
+            caption = caption.replace('&lt;','^').replace('&gt;','v')
         anchor.append('%s' % caption)
         if highlighted: anchor.args['class']='mode'
     def mk_grid_item(html_row, motor, direction=None, replace_v=False):
@@ -61,7 +61,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
                    direction[INDEX] == motors.state[motor[INDEX]],
                    replace_v
                    )
-        
+
     if HORIZONTAL_GRID:
         body_table = body.table
         body_table.tr.th(colspan='8').append(message)
@@ -83,18 +83,19 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     if VERTICLE_GRID:
         body_table = body.table
         body_table.tr.th(colspan='5').append(message)
-        
-        for direction in [None, *DIRECTIONS[UP:DOWN+1]]:
+
+        #print(DIRECTIONS[UP:DOWN+1])
+        for direction in (None,) + DIRECTIONS[UP:DOWN+1]:
             row = body_table.tr
-            
+
             for motor in motors:
-                mk_grid_item(row, motor, direction)
-        
+                mk_grid_item(row, motor, direction, True)
+
 
     lt = time.strftime(TIME_FORMAT_STRING, time.localtime()).replace(' 0',' ')
     ut = time.strftime(DATE_FORMAT_STRING, time.localtime(LAST_UPDATE)).replace(' 0',' ')
     body.p(align='center').append("Server local time is: %s<br />Last update time was: %s" % (lt, ut))
-    
+
     #TODO: I'd like a memory usage stat here or down by admin commands.
     time_table = body.table
     time_table.tr.th(colspan='3').append("Scheduled events:")
@@ -127,7 +128,6 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     d=str(doc)
     print("    Bytes rendered:",len(d))
     return d#str(doc)
-
 ###############################################################################
 ADMIN_COMMANDS = 'status quit update restart shutdown'.split()
 
@@ -153,7 +153,7 @@ def admin_command(command):
         DEBUG_PREFIX = '#IN DEBUG MODE: ' #block commands from being interpreted, but continue
     else:
         DEBUG_PREFIX = ''
-        
+
     def die():
         log('trying to restart')
         #server_thread.clear()
@@ -166,7 +166,7 @@ def admin_command(command):
 ##        if func is None:
 ##            raise RuntimeError('Not running with the Werkzeug Server')
 ##        func()
-    
+
     if command=='restart':
         s, code = format_CompleteProcess(DEBUG_PREFIX + 'shutdown -r +1')
         doc_results.append(s)
@@ -187,7 +187,7 @@ def admin_command(command):
                 #if not code:
                     s+='Restarting shadebox server...'
                     Event(1,'Restarting shadebox server...', die)
-            
+
         doc_results.append(s)
         return str(doc)
     if command=='quit':
@@ -400,7 +400,7 @@ if __name__ == '__main__':
                 del successes[port]
             finally:
                 server_thread.clear()
-                
+
             #except OSError:
             #    log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
 
@@ -421,9 +421,9 @@ if __name__ == '__main__':
             events.join(All=True)
 ##        finally:
 ##            if server_thread:
-                
-                
-            
+
+
+
         #finally:
         log('exiting')
         #    events.cancel(True,True)
