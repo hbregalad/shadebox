@@ -20,7 +20,7 @@ events = Event(0, 'dummy event', lambda:print("Event list created"))
 motors = Driver()
 
 ###############################################################################
-HORIZONTAL_GRID = True
+HORIZONTAL_GRID = False
 VERTICLE_GRID = True
 
 def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
@@ -48,7 +48,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     def anchor(html_row, href, caption, highlighted=False, replace_v=False):
         anchor = html_row.td.a(href=href)
         if replace_v:
-            caption = caption.replace('&lt;','^').replace('&gt;','v')
+            caption = caption.replace('&lt;','^').replace('&gt;','v').replace('v|','v').replace('|^','^')
         anchor.append('%s' % caption)
         if highlighted: anchor.args['class']='mode'
     def mk_grid_item(html_row, motor, direction=None, replace_v=False):
@@ -129,7 +129,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     print("    Bytes rendered:",len(d))
     return d#str(doc)
 ###############################################################################
-ADMIN_COMMANDS = 'status quit update restart shutdown'.split()
+ADMIN_COMMANDS = 'status ping quit update restart shutdown'.split()
 
 def format_CompleteProcess(shell_command, log_output=True):
     """Runs shell_command in a new process, and formats the results.
@@ -201,6 +201,22 @@ def admin_command(command):
         doc_results.append(s)
 ##        s, code = format_CompleteProcess('cat shadebox.log', False)
 ##        doc_results.append(s)
+        return str(doc)
+    if command=='ping':
+        s, code = format_CompleteProcess('ifconfig')
+        doc_results.append(s)
+
+        s, code = format_CompleteProcess('ip route | grep default')
+        doc_results.append(s)
+        addrs = []
+        try:
+            addr = s.split()[2]
+        except:
+            return str(doc)
+
+        for addr in addrs:
+            s, code = format_CompleteProcess(f'ping {addr} -c 4')
+        doc_results.append(s)
         return str(doc)
 
 ###############################################################################
