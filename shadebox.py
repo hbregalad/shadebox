@@ -208,14 +208,13 @@ def admin_command(command):
 
         s, code = format_CompleteProcess('ip route | grep default')
         doc_results.append(s)
-        addrs = []
+        #addrs = []
         try:
             addr = s.split()[2]
-        except:
+        except Exception:
             return str(doc)
 
-        for addr in addrs:
-            s, code = format_CompleteProcess('ping %s -c 4' % addr)
+        s, code = format_CompleteProcess('ping %s -c 4' % addr)
         doc_results.append(s)
         return str(doc)
 
