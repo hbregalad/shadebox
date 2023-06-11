@@ -20,6 +20,8 @@ events = Event(0, 'dummy event', lambda:print("Event list created"))
 motors = Driver()
 
 ###############################################################################
+HORIZONTAL_GRID = True
+VERTICLE_GRID = True
 
 def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     """Code for main render."""
@@ -42,21 +44,52 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     head.append(STYLE)
     head.append(KEYWORDS)
     body = doc.body
-    body_table = body.table
-    body_table.tr.th(colspan='8').append(message)
-    #table = body.table()
-    for motor in motors:
-        row = body_table.tr
-        #row.td(**{'class':'odd' if motor % 2 else 'even'}).append('Motor{}: '.format(motor))
 
-        row.td.append(motor[MOTOR_NAME]+':')
-        for direction in DIRECTIONS[UP:DOWN+1]:
-            #a= row.td(**{'class':'odd' if motor % 2 else 'even'}).a(href='/start/{}/{}'.format(motor, direction) )
-            anchor = row.td.a(href='/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX], direction[INDEX]))
-            anchor.append('%s' % direction[DIRECTION_CAPTION])
-            if direction[INDEX] == motors.state[motor[INDEX]]:
-                anchor.args['class']='mode'
-            #row.append()
+    def anchor(html_row, href, caption, highlighted=False, replace_v=False):
+        anchor = html_row.td.a(href=href)
+        if replace_v:
+            caption = caption.replace('<','^').replace('>','v')
+        anchor.append('%s' % caption)
+        if highlighted: anchor.args['class']='mode'
+    def mk_grid_item(html_row, motor, direction=None, replace_v=False):
+        if direction is None:
+            html_row.td.append(motor[MOTOR_NAME]+':')
+        else:
+            anchor(html_row,
+                   '/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX], direction[INDEX]),
+                   direction[DIRECTION_CAPTION],
+                   direction[INDEX] == motors.state[motor[INDEX]],
+                   replace_v
+                   )
+        
+    if HORIZONTAL_GRID:
+        body_table = body.table
+        body_table.tr.th(colspan='8').append(message)
+        #table = body.table()
+        for motor in motors:
+            row = body_table.tr
+            #row.td(**{'class':'odd' if motor % 2 else 'even'}).append('Motor{}: '.format(motor))
+            mk_grid_item(row, motor)
+            #row.td.append(motor[MOTOR_NAME]+':')
+            for direction in DIRECTIONS[UP:DOWN+1]:
+                mk_grid_item(row, motor, direction)
+##                #a= row.td(**{'class':'odd' if motor % 2 else 'even'}).a(href='/start/{}/{}'.format(motor, direction) )
+##                anchor = row.td.a(href='/{}/{}/{}'.format(MOTOR_START_PATH, motor[INDEX], direction[INDEX]))
+##                anchor.append('%s' % direction[DIRECTION_CAPTION])
+##                if direction[INDEX] == motors.state[motor[INDEX]]:
+##                    anchor.args['class']='mode'
+                #row.append()
+
+    if VERTICLE_GRID:
+        body_table = body.table
+        body_table.tr.th(colspan='5').append(message)
+        
+        for direction in [None, *DIRECTIONS[UP:DOWN+1]]:
+            row = body_table.tr
+            
+            for motor in motors:
+                mk_grid_item(row, motor, direction)
+        
 
     lt = time.strftime(TIME_FORMAT_STRING, time.localtime()).replace(' 0',' ')
     ut = time.strftime(DATE_FORMAT_STRING, time.localtime(LAST_UPDATE)).replace(' 0',' ')
@@ -116,10 +149,10 @@ def admin_command(command):
     docb = doc.body
     doc_results = doc.p
     doc.p(align='right').a(href='/').append('return to Home')
-    if not motors.boards and command in 'update restart shutdown'.split():
-        echo = 'echo ' #block commands from being interpreted, but continue
+    if not motors.boards:# and command in 'update restart shutdown'.split():
+        DEBUG_PREFIX = '#IN DEBUG MODE: ' #block commands from being interpreted, but continue
     else:
-        echo = ''
+        DEBUG_PREFIX = ''
         
     def die():
         log('trying to restart')
@@ -135,18 +168,18 @@ def admin_command(command):
 ##        func()
     
     if command=='restart':
-        s, code = format_CompleteProcess(echo + 'shutdown -r +1')
+        s, code = format_CompleteProcess(DEBUG_PREFIX + 'shutdown -r +1')
         doc_results.append(s)
         return str(doc)
 
     if command=='shutdown':
-        s, code = format_CompleteProcess(echo + 'shutdown -P +1')
+        s, code = format_CompleteProcess(DEBUG_PREFIX + 'shutdown -P +1')
         doc_results.append(s)
         return str(doc)
     if command=='update':
-        s, code = format_CompleteProcess(echo + 'git pull')
+        s, code = format_CompleteProcess(DEBUG_PREFIX + 'git pull')
         if not code:
-            s2, code = format_CompleteProcess(echo + 'sudo %s setup.py' % sys.executable)
+            s2, code = format_CompleteProcess(DEBUG_PREFIX + 'sudo %s setup.py' % sys.executable)
             s += s2
             if not code:
                 #s2, code = format_CompleteProcess('systemctl restart shadebox.service')
@@ -352,15 +385,22 @@ if __name__ == '__main__':
 
         def startup(port):
             build_error_pages(port)
+            t = time.time()
             try:
-                successes[port]=True
+                successes[port] = True
                 app.run(host = '0.0.0.0', port=port)
 
             except PermissionError:
                 log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
+                log(time.time()-t, 'seconds')
+                del successes[port]
+            except Exception as E:
+                log(''.join(traceback.format_exception(E)))
+                log(time.time()-t, 'seconds')
                 del successes[port]
             finally:
                 server_thread.clear()
+                
             #except OSError:
             #    log('PermissionError: Port {} not allowed, trying alternate port'.format(port))
 
@@ -371,7 +411,7 @@ if __name__ == '__main__':
             thread.start()
             #event = Event(.01, "start server", startup, [port])
             #event.timer.setDaemon()
-            time.sleep(1)
+            time.sleep(2)
             if len(successes):
                 break
 
