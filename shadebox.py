@@ -215,7 +215,7 @@ def admin_command(command):
             return str(doc)
 
         for addr in addrs:
-            s, code = format_CompleteProcess(f'ping {addr} -c 4')
+            s, code = format_CompleteProcess('ping %s -c 4' % addr)
         doc_results.append(s)
         return str(doc)
 
