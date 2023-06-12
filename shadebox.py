@@ -16,8 +16,14 @@ app = Flask(__name__)
 #some constants we don't need anywhere else:
 
 DEFAULT_REFRESH = 300 #in seconds
-events = Event(0, 'dummy event', lambda:print("Event list created"))
+ping = Ping()
+#events = Event(0, 'dummy event', lambda:print("Event list created"))
+events = Event(1, 'measure ping', lambda:{print("avg ping:", avg)
+                                          for avg in ping.subscribe()}
+               )
+
 motors = Driver()
+
 
 ###############################################################################
 HORIZONTAL_GRID = False
@@ -95,6 +101,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     lt = time.strftime(TIME_FORMAT_STRING, time.localtime()).replace(' 0',' ')
     ut = time.strftime(DATE_FORMAT_STRING, time.localtime(LAST_UPDATE)).replace(' 0',' ')
     body.p(align='center').append("Server local time is: %s<br />Last update time was: %s" % (lt, ut))
+    body.p(align='center').append("Gateway metrics are %s" % ping.get_metrics())
 
     #TODO: I'd like a memory usage stat here or down by admin commands.
     time_table = body.table
@@ -145,8 +152,8 @@ def format_CompleteProcess(shell_command, log_output=True):
 @app.route('/admin_command/<command>')
 def admin_command(command):
     doc = html()
-    doc.title.append('result:')
-    docb = doc.body
+    doc.head.title.append('result:')
+    doc = doc.body
     doc_results = doc.p
     doc.p(align='right').a(href='/').append('return to Home')
     if not motors.boards:# and command in 'update restart shutdown'.split():
@@ -206,12 +213,18 @@ def admin_command(command):
         s, code = format_CompleteProcess('ifconfig')
         doc_results.append(s)
 
-        s, code = format_CompleteProcess('ip route | grep default')
+        s, code = format_CompleteProcess('ip route')
         doc_results.append(s)
-        #addrs = []
-        try:
-            addr = s.split()[2]
-        except Exception:
+
+        s = s.replace('<br>',' ').split()
+        for i, v in enumerate(s):
+            if v == 'default':
+                addr = s[i+2]
+                break
+            else:
+                print(v)
+        else:
+            #'default' not found, default gateway address not known
             return str(doc)
 
         s, code = format_CompleteProcess('ping %s -c 4' % addr)
