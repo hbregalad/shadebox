@@ -103,7 +103,7 @@ def render_main_page(message='Ready.', refresh=DEFAULT_REFRESH, reload='/'):
     body.p(align='center').append("Server local time is: %s<br />Last update time was: %s" % (lt, ut))
     #server network status
     p = body.p(align='center')
-    p.a(href ="http://%a/" % ping.default_gateway).append("Gateway")
+    p.a(href ="http://%s/" % ping.default_gateway).append("Gateway")
     p.append(" metrics are %s" % ping.get_metrics())
 
     #TODO: I'd like a memory usage stat here or down by admin commands.
