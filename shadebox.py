@@ -187,7 +187,7 @@ def admin_command(command):
         doc_results.append(s)
         return str(doc)
     if command=='update':
-        s, code = format_CompleteProcess(DEBUG_PREFIX + 'git pull')
+        s, code = format_CompleteProcess(DEBUG_PREFIX + 'sudo pi git pull')
         if not code:
             s2, code = format_CompleteProcess(DEBUG_PREFIX + 'sudo %s setup.py' % sys.executable)
             s += s2
